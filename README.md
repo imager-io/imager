@@ -19,3 +19,10 @@ imager        : ▇▇▇▇ 4.20M
 # Status
 
 Supports any image decodable by `image-rs`. For output targets, currently supports JPEG.
+
+# Install
+
+```shell
+$ git clone https://github.com/colbyn/imager.git && cd imager
+$ cargo install --path . --force
+```
