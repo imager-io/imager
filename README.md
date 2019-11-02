@@ -1,7 +1,5 @@
 # Imager
-
 > Brute Force Image Optimization
-
 
 ## About
 
@@ -16,13 +14,32 @@ compression.ai: ▇▇▇▇▇▇▇▇ 8.90M
 imager        : ▇▇▇▇ 4.20M
 ```
 
+
 # Status
 
 Supports any image decodable by `image-rs`. For output targets, currently supports JPEG.
+
 
 # Install
 
 ```shell
 $ git clone https://github.com/colbyn/imager.git && cd imager
 $ cargo install --path . --force
+```
+
+
+# Example
+
+```shell
+$ imager opt -i path/to/images/**/*.jpeg -o assets/output/
+```
+
+Also supports resizing:
+```shell
+$ imager opt -i path/to/images/**/*.jpeg -o assets/output/ -s 1200x1200
+```
+
+Help:
+```shell
+$ imager opt --help
 ```
