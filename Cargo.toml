@@ -1,0 +1,26 @@
+[package]
+name = "imager"
+version = "0.0.1"
+authors = ["Colbyn Wadman <hello@colbyn.com>"]
+edition = "2018"
+publish = false
+
+[dependencies]
+libc = "^0.2"
+mozjpeg-sys = "^0.10"
+vmaf-sys = "0.0.9"
+colourado = "0.2.0"
+glob = "^0.3"
+image = "^0.22"
+imageproc = "^0.19"
+clap = "^2.33"
+structopt = "^0.2"
+rand = "^0.7"
+rayon = "1.1.0"
+either = {version = "^1", features = ["serde"]}
+serde = {version = "^1.0", features = ["derive"]}
+serde_json = "^1.0"
+tempfile = "3.1.0"
+lazy_static = "1.4.0"
+itertools = "0.8.0"
+indicatif = "0.12.0"
