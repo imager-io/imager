@@ -2,9 +2,10 @@
 
 > Brute Force Image Optimization
 
+
 ## About
 
-This is a tool that can competitively optimize (e.g.) extremely noisy, high resolution images; at the expense of increased encoding time and CPU overhead. This is a tradeoff that should be suitable for over 90% of online content, where site performance should matter.
+This is a tool that can competitively optimize (e.g.) extremely noisy, high resolution images; at the expense of increased encoding time and CPU overhead. This is a tradeoff that should be suitable for over 90% of online content, where site performance matters.
 
 
 ## [Benchmarks](https://github.com/colbyn/imager-bench-2019-11-2)
