@@ -15,7 +15,7 @@ imager        : ▇▇▇▇ 4.20M
 ```
 
 
-# Status
+## Status
 
 Supports any image decodable by `image-rs`. For output targets, currently supports JPEG.
 
