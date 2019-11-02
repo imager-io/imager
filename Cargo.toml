@@ -3,7 +3,13 @@ name = "imager"
 version = "0.0.1"
 authors = ["Colbyn Wadman <hello@colbyn.com>"]
 edition = "2018"
-publish = false
+# publish = false
+license = "MPL-2.0"
+repository = "https://github.com/colbyn/imager"
+homepage = "https://github.com/colbyn/imager"
+description = "Image optimization tool"
+keywords = ["image"]
+readme = "README.md"
 
 [dependencies]
 libc = "^0.2"
