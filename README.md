@@ -78,7 +78,7 @@ $ imager opt --help
 ```
 
 
-# Future - Short (to long) Term:
+# Future - Short (to long) Term
 
 In addition to the preexisting CLI tool and in accordance with “becoming the industry standard” mantra.
 
