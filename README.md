@@ -51,7 +51,7 @@ I’m considering `WebP` for the next supported codec.
 
 Nothing short of becoming *the industry standard* for image optimization! :)
 
-More concretely. Expose a uniform interface for image transcoding and optimization. Based on off-the-shelf encoders, akin to FFmpeg. With support predominately concerned with lossy codecs.
+More concretely. Expose a uniform interface for image transcoding and optimization of popular codecs. Based on off-the-shelf encoders, akin to FFmpeg. With support predominately concerned with lossy codecs.
 
 
 
