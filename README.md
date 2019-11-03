@@ -49,7 +49,7 @@ I’m considering `WebP` for the next supported codec.
 
 ## Aspirations
 
-Nothing short of becoming *the industry standard* for your image optimization needs.
+Nothing short of becoming *the industry standard* for your image optimization needs! :)
 
 
 # Install
