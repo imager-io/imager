@@ -32,7 +32,7 @@ Something that isn’t benchmarked here that I've been curious about. Presumably
 | WebP   | Lossy(Luma channel only) |
 | PNM    | PBM, PGM, PPM, standard PAM |
 
-Essentially supports any image decodable by `image-rs`.
+Essentially supports any image decodable by [image-rs](https://github.com/image-rs/image.git).
 
 ### Supported **Output** Image Formats
 
