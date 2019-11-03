@@ -51,6 +51,9 @@ I’m considering `WebP` for the next supported codec.
 
 Nothing short of becoming *the industry standard* for image optimization! :)
 
+More concretely. Expose a uniform interface for image transcoding and optimization. Based on off-the-shelf encoders, akin to FFmpeg. With support predominately concerned with lossy codecs.
+
+
 
 # Install
 
@@ -78,7 +81,9 @@ $ imager opt --help
 ```
 
 
-# Future - Short (to long) Term
+# Other Miscellaneous
+
+## Future - Short (to long) Term
 
 In addition to the preexisting CLI tool and in accordance with “becoming the industry standard” mantra.
 
@@ -92,7 +97,7 @@ Although for now the CLI tool can work everywhere, as is common with FFmpeg.
 
 
 
-# Future - Long Term
+## Future - Long Term
 
 * [Investigation] Internally, how I use VMAF contradicts the official recommendations (from what little documentation or commentary exists). 
 
@@ -104,7 +109,7 @@ Although for now the CLI tool can work everywhere, as is common with FFmpeg.
 **Note that all future aspirations is predominantly predicated on this project getting popular and/or funding (e.g. VIA Patreon).** So if this project is beneficial at your work, let others know about it! :)
 
 
-# Regarding Imagers SAAS competitors
+## Regarding Imagers SAAS competitors
 > This is something I realized from trying to implement a SAAS model.
 
 In my mind SAAS products don’t make sense when it’s competing with a function. Contrarily, database services or team divisions are commonly split into separate services. Yet just resizing images rarely are, unless such is being pushed by SAAS ventures.
