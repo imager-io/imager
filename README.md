@@ -47,9 +47,9 @@ For now, support will pretty much just correspond to whats popularly available i
 I’m considering `WebP` for the next supported codec.
 
 
-## Aspirations
+## Objective
 
-Nothing short of becoming *the industry standard* for your image optimization needs! :)
+Nothing short of becoming *the industry standard* for image optimization! :)
 
 
 # Install
