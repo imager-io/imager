@@ -43,3 +43,8 @@ Help:
 ```shell
 $ imager opt --help
 ```
+
+
+<hr/>
+
+Copyright 2019 Colbyn Wadman
