@@ -3,10 +3,8 @@ name = "webp-dev"
 version = "0.0.1"
 authors = ["colbyn <hello@colbyn.com>"]
 edition = "2018"
-
-# description = "Rust VMAF FFI"
-# repository = "https://github.com/colbyn/vmaf-sys"
-# license = "MIT"
+repository = "https://github.com/imager-io/imager"
+license = "MIT"
 
 [features]
 default = []
