@@ -192,6 +192,11 @@ fn build_docs_only() {
 
 
 fn main() {
+    cc::Build::new()
+        .file("cbits/encoder.c")
+        .file("cbits/decoder.c")
+        .compile("cbits");
+
     #[cfg(feature="buildtype-docs-only")]
     build_docs_only();
 

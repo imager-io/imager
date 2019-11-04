@@ -5,7 +5,7 @@ authors = ["colbyn <hello@colbyn.com>"]
 edition = "2018"
 repository = "https://github.com/imager-io/imager"
 license = "MIT"
-description = "Webp FFI"
+description = "Internal"
 
 [features]
 default = []
@@ -16,9 +16,11 @@ no-default-features = true
 features = ["buildtype-docs-only"]
 
 [dependencies]
+libc = "^0.2"
 
 [build-dependencies]
 reqwest = "0.9.22"
 tar = "0.4.26"
 flate2 = "1.0.12"
 bindgen = "0.50"
+cc = "1.0.46"
