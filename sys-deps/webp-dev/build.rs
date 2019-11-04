@@ -5,6 +5,10 @@ use std::string::ToString;
 use flate2::read::GzDecoder;
 use tar::Archive;
 
+///////////////////////////////////////////////////////////////////////////////
+// BUILD
+///////////////////////////////////////////////////////////////////////////////
+
 fn is_release_mode() -> bool {
     let value = std::env::var("PROFILE")
         .expect("missing PROFILE")
@@ -43,6 +47,21 @@ pub struct WebpFiles {
     decode_header_file: PathBuf,
     encode_header_file: PathBuf,
     types_header_file: PathBuf,
+
+    imageio_image_dec_h: PathBuf,
+    imageio_image_enc_h: PathBuf,
+    imageio_imageio_util_h: PathBuf,
+    imageio_jpegdec_h: PathBuf,
+    imageio_metadata_h: PathBuf,
+    imageio_pngdec_h: PathBuf,
+    imageio_pnmdec_h: PathBuf,
+    imageio_tiffdec_h: PathBuf,
+    imageio_webpdec_h: PathBuf,
+    imageio_wicdec_h: PathBuf,
+
+    imageio_libimagedec_a: PathBuf,
+    imageio_libimageenc_a: PathBuf,
+    imageio_libimageio_util_a: PathBuf,
 }
 
 fn download_and_build_webp() -> Result<WebpFiles, String> {
@@ -51,10 +70,28 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
     let source_dir = out_dir.join("source");
     let release_dir = out_dir.join("release");
     // OUTPUT FILES
+
+
     let lib_file = release_dir.join("libwebp.a");
     let decode_header_file = release_dir.join("decode.h");
     let encode_header_file = release_dir.join("encode.h");
     let types_header_file = release_dir.join("types.h");
+
+    let imageio_image_dec_h = release_dir.join("imageio/image_dec.h");
+    let imageio_image_enc_h = release_dir.join("imageio/image_enc.h");
+    let imageio_imageio_util_h = release_dir.join("imageio/imageio_util.h");
+    let imageio_jpegdec_h = release_dir.join("imageio/jpegdec.h");
+    let imageio_metadata_h = release_dir.join("imageio/metadata.h");
+    let imageio_pngdec_h = release_dir.join("imageio/pngdec.h");
+    let imageio_pnmdec_h = release_dir.join("imageio/pnmdec.h");
+    let imageio_tiffdec_h = release_dir.join("imageio/tiffdec.h");
+    let imageio_webpdec_h = release_dir.join("imageio/webpdec.h");
+    let imageio_wicdec_h = release_dir.join("imageio/wicdec.h");
+
+    let imageio_libimagedec_a = release_dir.join("libimagedec.a");
+    let imageio_libimageenc_a = release_dir.join("libimageenc.a");
+    let imageio_libimageio_util_a = release_dir.join("libimageio_util.a");
+
     // CHECKS
     if is_debug_mode() {
         // Let’s not re-download this every time someone (or their dev tools)
@@ -63,7 +100,20 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
             lib_file.exists() &&
             decode_header_file.exists() &&
             encode_header_file.exists() &&
-            types_header_file.exists();
+            types_header_file.exists() &&
+            imageio_image_dec_h.exists() &&
+            imageio_image_enc_h.exists() &&
+            imageio_imageio_util_h.exists() &&
+            imageio_jpegdec_h.exists() &&
+            imageio_metadata_h.exists() &&
+            imageio_pngdec_h.exists() &&
+            imageio_pnmdec_h.exists() &&
+            imageio_tiffdec_h.exists() &&
+            imageio_webpdec_h.exists() &&
+            imageio_wicdec_h.exists() &&
+            imageio_libimagedec_a.exists() &&
+            imageio_libimageenc_a.exists() &&
+            imageio_libimageio_util_a.exists();
         if all_exists {
             return Ok(WebpFiles{
                 release_dir,
@@ -71,6 +121,21 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
                 decode_header_file,
                 encode_header_file,
                 types_header_file,
+
+                imageio_image_dec_h,
+                imageio_image_enc_h,
+                imageio_imageio_util_h,
+                imageio_jpegdec_h,
+                imageio_metadata_h,
+                imageio_pngdec_h,
+                imageio_pnmdec_h,
+                imageio_tiffdec_h,
+                imageio_webpdec_h,
+                imageio_wicdec_h,
+
+                imageio_libimagedec_a,
+                imageio_libimageenc_a,
+                imageio_libimageio_util_a,
             });
         }
     }
@@ -119,6 +184,9 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
     run_make(&source_dir);
     // TO RELEASE DIR
     std::fs::create_dir_all(&release_dir).map_err(|x| x.to_string())?;
+    std::fs::create_dir_all(release_dir.join("imageio")).map_err(|x| x.to_string())?;
+    
+
     let cpy = |src: PathBuf, dest: &PathBuf| {
         std::fs::copy(&src, dest).expect(&format!(
             "unable to cpy from {:?} to {:?}",
@@ -130,6 +198,19 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
     cpy(source_dir.join("src/webp/decode.h"), &decode_header_file);
     cpy(source_dir.join("src/webp/encode.h"), &encode_header_file);
     cpy(source_dir.join("src/webp/types.h"), &types_header_file);
+    cpy(source_dir.join("imageio/image_dec.h"), &imageio_image_dec_h);
+    cpy(source_dir.join("imageio/image_enc.h"), &imageio_image_enc_h);
+    cpy(source_dir.join("imageio/imageio_util.h"), &imageio_imageio_util_h);
+    cpy(source_dir.join("imageio/jpegdec.h"), &imageio_jpegdec_h);
+    cpy(source_dir.join("imageio/metadata.h"), &imageio_metadata_h);
+    cpy(source_dir.join("imageio/pngdec.h"), &imageio_pngdec_h);
+    cpy(source_dir.join("imageio/pnmdec.h"), &imageio_pnmdec_h);
+    cpy(source_dir.join("imageio/tiffdec.h"), &imageio_tiffdec_h);
+    cpy(source_dir.join("imageio/webpdec.h"), &imageio_webpdec_h);
+    cpy(source_dir.join("imageio/wicdec.h"), &imageio_wicdec_h);
+    cpy(source_dir.join("imageio/libimagedec.a"), &imageio_libimagedec_a);
+    cpy(source_dir.join("imageio/libimageenc.a"), &imageio_libimageenc_a);
+    cpy(source_dir.join("imageio/libimageio_util.a"), &imageio_libimageio_util_a);
     // CLEANUP
     std::fs::remove_dir_all(&download_dir).map_err(|x| x.to_string())?;
     std::fs::remove_dir_all(&source_dir).map_err(|x| x.to_string())?;
@@ -140,6 +221,21 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
         decode_header_file,
         encode_header_file,
         types_header_file,
+
+        imageio_image_dec_h,
+        imageio_image_enc_h,
+        imageio_imageio_util_h,
+        imageio_jpegdec_h,
+        imageio_metadata_h,
+        imageio_pngdec_h,
+        imageio_pnmdec_h,
+        imageio_tiffdec_h,
+        imageio_webpdec_h,
+        imageio_wicdec_h,
+
+        imageio_libimagedec_a,
+        imageio_libimageenc_a,
+        imageio_libimageio_util_a,
     })
 }
 
@@ -164,8 +260,11 @@ fn build_all() {
             .expect("unable to get str")
     });
     println!("cargo:rustc-link-lib=static=webp");
+    println!("cargo:rustc-link-lib=static=imagedec");
+    println!("cargo:rustc-link-lib=static=imageenc");
+    println!("cargo:rustc-link-lib=static=imageio_util");
     
-    // BUILD RUST FFI CODE
+    // BUILD RUST FFI CODE - WEBP
     bindgen::Builder::default()
         .header(webp_files.decode_header_file.to_str().expect("PathBuf as str"))
         .header(webp_files.encode_header_file.to_str().expect("PathBuf as str"))
@@ -173,21 +272,57 @@ fn build_all() {
         .generate_comments(true)
         .generate()
         .expect("Unable to generate bindings")
-        .write_to_file(out_path.join("bindings.rs"))
+        .write_to_file(out_path.join("bindings_webp.rs"))
         .expect("Couldn't write bindings!");
+    
+    // BUILD RUST FFI CODE - IMAGE-IO
+    bindgen::Builder::default()
+        .header(webp_files.imageio_image_dec_h.to_str().expect("PathBuf as str"))
+        .header(webp_files.imageio_image_enc_h.to_str().expect("PathBuf as str"))
+        .header(webp_files.imageio_imageio_util_h.to_str().expect("PathBuf as str"))
+        .header(webp_files.imageio_jpegdec_h.to_str().expect("PathBuf as str"))
+        .header(webp_files.imageio_metadata_h.to_str().expect("PathBuf as str"))
+        .header(webp_files.imageio_pngdec_h.to_str().expect("PathBuf as str"))
+        .header(webp_files.imageio_pnmdec_h.to_str().expect("PathBuf as str"))
+        .header(webp_files.imageio_tiffdec_h.to_str().expect("PathBuf as str"))
+        .header(webp_files.imageio_webpdec_h.to_str().expect("PathBuf as str"))
+        .header(webp_files.imageio_wicdec_h.to_str().expect("PathBuf as str"))
+        .generate_comments(true)
+        .generate()
+        .expect("Unable to generate bindings (image_io)")
+        .write_to_file(out_path.join("bindings_imageio.rs"))
+        .expect("Couldn't write bindings (imageio)!");
 }
 
 fn build_docs_only() {
     let out_path = PathBuf::from(std::env::var("OUT_DIR").unwrap());
-    // BUILD RUST FFI CODE
+    // BUILD RUST FFI CODE - WEB-P
     bindgen::Builder::default()
         .header("include/webp/decode.h")
         .header("include/webp/encode.h")
         .header("include/webp/types.h")
         .generate()
         .expect("Unable to generate bindings")
-        .write_to_file(out_path.join("bindings.rs"))
+        .write_to_file(out_path.join("bindings_webp.rs"))
         .expect("Couldn't write bindings!");
+    
+    // BUILD RUST FFI CODE - IMAGE-IO
+    bindgen::Builder::default()
+        .header("include/imageio/image_dec.h")
+        .header("include/imageio/image_enc.h")
+        .header("include/imageio/imageio_util.h")
+        .header("include/imageio/jpegdec.h")
+        .header("include/imageio/metadata.h")
+        .header("include/imageio/pngdec.h")
+        .header("include/imageio/pnmdec.h")
+        .header("include/imageio/tiffdec.h")
+        .header("include/imageio/webpdec.h")
+        .header("include/imageio/wicdec.h")
+        .generate_comments(true)
+        .generate()
+        .expect("Unable to generate bindings (image_io)")
+        .write_to_file(out_path.join("bindings_imageio.rs"))
+        .expect("Couldn't write bindings (image_io)!");
 }
 
 
