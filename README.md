@@ -58,7 +58,7 @@ More concretely. Expose a uniform interface for image transcoding and optimizati
 # Install
 
 ```shell
-$ git clone https://github.com/imager-io/imager.git && cd imager
+$ git clone https://github.com/imager-io/imager.git && cd imager/imager
 $ cargo install --path . --force
 ```
 
