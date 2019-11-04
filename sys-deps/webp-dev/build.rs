@@ -170,6 +170,7 @@ fn build_all() {
         .header(webp_files.decode_header_file.to_str().expect("PathBuf as str"))
         .header(webp_files.encode_header_file.to_str().expect("PathBuf as str"))
         .header(webp_files.types_header_file.to_str().expect("PathBuf as str"))
+        .generate_comments(true)
         .generate()
         .expect("Unable to generate bindings")
         .write_to_file(out_path.join("bindings.rs"))
