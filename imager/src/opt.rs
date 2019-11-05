@@ -191,20 +191,25 @@ impl Source {
                 };
                 (payload, out_meta)
             }
-            // BAD
-            Some((_, bad_m)) if bad_m.start_q == 0 && bad_m.end_q == 0 => {
-                let fallback_q = 75;
-                let payload = crate::tool::mozjpeg::encode(&self.source, fallback_q);
-                let out_meta = OutMeta {
-                    start_q: starting_q,
-                    end_q: fallback_q,
-                    passed: false,
-                    class: self.class.class.clone(),
-                };
-                (payload, out_meta)
+            // MAYBE
+            Some((payload, meta)) => {
+                // BAD
+                if meta.start_q == 0 && meta.end_q == 0 {
+                    let fallback_q = 75;
+                    let payload = crate::tool::mozjpeg::encode(&self.source, fallback_q);
+                    let out_meta = OutMeta {
+                        start_q: starting_q,
+                        end_q: fallback_q,
+                        passed: false,
+                        class: self.class.class.clone(),
+                    };
+                    (payload, out_meta)
+                }
+                // GOOD
+                else {
+                    (payload, meta)
+                }
             }
-            // GOOD
-            Some(x) => x
         }
     }
 }
