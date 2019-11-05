@@ -1,5 +1,5 @@
 [package]
-name = "webp-dev"
+name = "imager-webp"
 version = "0.0.4"
 authors = ["colbyn <hello@colbyn.com>"]
 edition = "2018"
