@@ -57,8 +57,9 @@ More concretely. Expose a uniform interface for image transcoding and optimizati
 
 ## Requirements
 
-* `make` build tool
+* `make` build tool 
 * `cargo` build tool
+* `c/c++` compiler
 * `libclang`
 * `libc++` - The C++ standard library
 
