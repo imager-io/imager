@@ -43,7 +43,11 @@ fn run_make(source_path: &PathBuf) {
 #[derive(Debug, Clone)]
 pub struct WebpFiles {
     release_dir: PathBuf,
-    lib_file: PathBuf,
+    
+    libwebp_a: PathBuf,
+    libwebpdemux_a: PathBuf,
+
+
     decode_header_file: PathBuf,
     encode_header_file: PathBuf,
     types_header_file: PathBuf,
@@ -72,7 +76,8 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
     // OUTPUT FILES
 
 
-    let lib_file = release_dir.join("libwebp.a");
+    let libwebp_a = release_dir.join("libwebp.a");
+    let libwebpdemux_a = release_dir.join("libwebpdemux.a");
     let decode_header_file = release_dir.join("decode.h");
     let encode_header_file = release_dir.join("encode.h");
     let types_header_file = release_dir.join("types.h");
@@ -97,7 +102,8 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
         // Let’s not re-download this every time someone (or their dev tools)
         // builds the project. Unless in release mode.
         let all_exists =
-            lib_file.exists() &&
+            libwebp_a.exists() &&
+            libwebpdemux_a.exists() &&
             decode_header_file.exists() &&
             encode_header_file.exists() &&
             types_header_file.exists() &&
@@ -117,7 +123,10 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
         if all_exists {
             return Ok(WebpFiles{
                 release_dir,
-                lib_file,
+                
+                libwebp_a,
+                libwebpdemux_a,
+                
                 decode_header_file,
                 encode_header_file,
                 types_header_file,
@@ -194,7 +203,7 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
             dest,
         ));
     };
-    cpy(source_dir.join("src/libwebp.a"), &lib_file);
+    cpy(source_dir.join("src/libwebp.a"), &libwebp_a);
     cpy(source_dir.join("src/webp/decode.h"), &decode_header_file);
     cpy(source_dir.join("src/webp/encode.h"), &encode_header_file);
     cpy(source_dir.join("src/webp/types.h"), &types_header_file);
@@ -217,11 +226,13 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
     // DONE
     Ok(WebpFiles{
         release_dir,
-        lib_file,
+        
+        libwebp_a,
+        libwebpdemux_a,
+        
         decode_header_file,
         encode_header_file,
         types_header_file,
-
         imageio_image_dec_h,
         imageio_image_enc_h,
         imageio_imageio_util_h,
@@ -241,10 +252,10 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// ENTRYPOINT
+// DEPENDENCIES
 ///////////////////////////////////////////////////////////////////////////////
 
-fn build_all() {
+fn build_dependencies() {
     let out_path = PathBuf::from(std::env::var("OUT_DIR").unwrap());
 
     // DOWNLOAD & BUILD VMAF
@@ -256,6 +267,12 @@ fn build_all() {
     // LINK TO STATIC LIB
     println!("cargo:rustc-link-search=native={}", {
         webp_files.release_dir
+            .to_str()
+            .expect("unable to get str")
+    });
+    println!("cargo:rustc-link-search=native={}", {
+        webp_files.release_dir
+            .join("imageio")
             .to_str()
             .expect("unable to get str")
     });
@@ -294,47 +311,25 @@ fn build_all() {
         .expect("Couldn't write bindings (imageio)!");
 }
 
-fn build_docs_only() {
-    let out_path = PathBuf::from(std::env::var("OUT_DIR").unwrap());
-    // BUILD RUST FFI CODE - WEB-P
-    bindgen::Builder::default()
-        .header("include/webp/decode.h")
-        .header("include/webp/encode.h")
-        .header("include/webp/types.h")
-        .generate()
-        .expect("Unable to generate bindings")
-        .write_to_file(out_path.join("bindings_webp.rs"))
-        .expect("Couldn't write bindings!");
-    
-    // BUILD RUST FFI CODE - IMAGE-IO
-    bindgen::Builder::default()
-        .header("include/imageio/image_dec.h")
-        .header("include/imageio/image_enc.h")
-        .header("include/imageio/imageio_util.h")
-        .header("include/imageio/jpegdec.h")
-        .header("include/imageio/metadata.h")
-        .header("include/imageio/pngdec.h")
-        .header("include/imageio/pnmdec.h")
-        .header("include/imageio/tiffdec.h")
-        .header("include/imageio/webpdec.h")
-        .header("include/imageio/wicdec.h")
-        .generate_comments(true)
-        .generate()
-        .expect("Unable to generate bindings (image_io)")
-        .write_to_file(out_path.join("bindings_imageio.rs"))
-        .expect("Couldn't write bindings (image_io)!");
-}
 
+///////////////////////////////////////////////////////////////////////////////
+// CBITS
+///////////////////////////////////////////////////////////////////////////////
 
-fn main() {
+pub fn compile_cbits() {
     cc::Build::new()
+        .include("include")
         .file("cbits/encoder.c")
         .file("cbits/decoder.c")
+        .file("cbits/utils.c")
         .compile("cbits");
+}
 
-    #[cfg(feature="buildtype-docs-only")]
-    build_docs_only();
+///////////////////////////////////////////////////////////////////////////////
+// MAIN
+///////////////////////////////////////////////////////////////////////////////
 
-    #[cfg(not(feature="buildtype-docs-only"))]
-    build_all();
+fn main() {
+    build_dependencies();
+    compile_cbits();
 }
