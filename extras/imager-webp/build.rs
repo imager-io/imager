@@ -204,6 +204,8 @@ fn download_and_build_webp() -> Result<WebpFiles, String> {
         ));
     };
     cpy(source_dir.join("src/libwebp.a"), &libwebp_a);
+    cpy(source_dir.join("src/demux/libwebpdemux.a"), &libwebpdemux_a);
+
     cpy(source_dir.join("src/webp/decode.h"), &decode_header_file);
     cpy(source_dir.join("src/webp/encode.h"), &encode_header_file);
     cpy(source_dir.join("src/webp/types.h"), &types_header_file);
@@ -277,9 +279,14 @@ fn build_dependencies() {
             .expect("unable to get str")
     });
     println!("cargo:rustc-link-lib=static=webp");
+    println!("cargo:rustc-link-lib=static=webpdemux");
     println!("cargo:rustc-link-lib=static=imagedec");
     println!("cargo:rustc-link-lib=static=imageenc");
     println!("cargo:rustc-link-lib=static=imageio_util");
+
+    // DYNAMIC LIBRARY DEPENDENCIES - TODO: PHASE OUT
+    println!("cargo:rustc-link-lib=jpeg");
+    println!("cargo:rustc-link-lib=png");
     
     // BUILD RUST FFI CODE - WEBP
     bindgen::Builder::default()

@@ -17,6 +17,7 @@ features = ["buildtype-docs-only"]
 
 [dependencies]
 libc = "^0.2"
+image = "^0.22"
 
 [build-dependencies]
 reqwest = "0.9.22"
