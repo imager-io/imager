@@ -53,18 +53,59 @@ Nothing short of becoming *the industry standard* for image optimization! :)
 
 More concretely. Expose a uniform interface for image transcoding and optimization of popular codecs. Based on off-the-shelf encoders, akin to FFmpeg. With support predominately concerned with lossy codecs.
 
+# Building From Source
+
+## Requirements
+
+* `make` build tool
+* `cargo` build tool
+* `libclang`
+* `libc++` - The C++ standard library
+
+### Step 1. [Cargo](https://rustup.rs)
+
+```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
 
 
-# Install
+### Step 2.
+
+#### For MacOS
+
+```
+brew install llvm
+```
+
+#### For Debian-based Linuxes
+
+```
+apt install llvm-dev libclang-dev clang
+```
+
+### Step 3. Optional
+
+Report any issues.
+
+## Install
+
+### Step 1. Download
 
 ```shell
 $ git clone https://github.com/imager-io/imager.git && cd imager/imager
+```
+
+### Step 2. Build & Install
+> Will install `imager` to `~/.cargo/bin`.
+
+```shell
 $ cargo install --path . --force
 ```
 
 Note that long term wise I’d like to remove cargo from the installation picture for the CLI tool.
 
-# Example
+
+# Examples
 
 ```shell
 $ imager opt -i path/to/images/**/*.jpeg -o assets/output/
