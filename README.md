@@ -69,7 +69,6 @@ More concretely. Expose a uniform interface for image transcoding and optimizati
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-
 ### Step 2.
 
 #### For MacOS
