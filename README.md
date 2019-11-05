@@ -73,14 +73,19 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 #### For MacOS
 
-```
+```shell
 brew install llvm
 ```
 
 #### For Debian-based Linuxes
 
+```shell
+$ apt install llvm-dev libclang-dev clang
 ```
-apt install llvm-dev libclang-dev clang
+
+Additionally if you don’t have `make` installed:
+```shell
+$ apt install build-essential
 ```
 
 ### Step 3. Optional
