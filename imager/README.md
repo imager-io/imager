@@ -129,6 +129,11 @@ $ imager opt --help
 
 # Other Miscellaneous
 
+## Articles
+
+* [Modern Image Optimization for 2020 - Issues, Solutions, and Open Source Solutions](https://medium.com/@colbyn/modern-image-optimization-for-2020-issues-solutions-and-open-source-solutions-543af00e3e51)
+
+
 ## Future - Short (to long) Term
 
 In addition to the preexisting CLI tool and in accordance with “becoming the industry standard” mantra.
