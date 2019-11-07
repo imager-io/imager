@@ -6,7 +6,7 @@ There are two `imager` sub-commands:
 * `imager server`  - http server alternative to `imager opt`.
 
 ## `imager opt`
-Two flags are important `-i` and `-o`, for input image file(s), and the output directly, respectively. 
+Two flags are important, `-i` and `-o`, for input image file(s), and the output directory, respectively. 
 
 #### [required] `-i` or `--input` 
 > input image(s)
@@ -21,7 +21,7 @@ imager -i images/*.jpeg images/*.jpg images/*.png -o output
 #### [required] `-o` or `--output`
 > output directly
 
-Where to save the optimized images. If the given directly is missing it will be created automatically. 
+Where to save the optimized images. If the given directory is missing it will be created automatically. 
 > For your sake, `imager opt` will never implicitly override input file paths. 
 
 The image output(s) will always have the same file name as the input image. So e.g. given `imager opt -i input1.jpeg -o output`. The optimized `input1.jpeg` will be saved under `output/input1.jpeg`. 
