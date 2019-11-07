@@ -75,7 +75,7 @@ impl TryFrom<http::Uri> for OptParameters {
 fn index(request: HttpRequest) -> HttpResponse {
     let version = env!("CARGO_PKG_VERSION");
     HttpResponse::Ok().body(format!(
-        "imager server, version '{version}'.",
+        "Imager server, version '{version}'.",
         version=version,
     ))
 }
