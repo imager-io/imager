@@ -137,6 +137,10 @@ Just use the GitHub issue tracker for this project.
 
 # Other Miscellaneous
 
+## Notes for Developers
+
+I’d recommend always using the `release` flag when in development. E.g. `cargo run --release`. Otherwise it’ll be significantly slower. 
+
 ## Articles
 
 * [Modern Image Optimization for 2020 - Issues, Solutions, and Open Source Solutions](https://medium.com/@colbyn/modern-image-optimization-for-2020-issues-solutions-and-open-source-solutions-543af00e3e51)
