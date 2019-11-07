@@ -7,6 +7,7 @@ pub mod utils;
 pub mod opt;
 pub mod cli;
 pub mod data;
+pub mod server;
 
 use structopt::StructOpt;
 use cli::Command;

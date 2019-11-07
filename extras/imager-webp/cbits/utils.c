@@ -17,3 +17,12 @@ void webp_picture_from_png(const uint8_t* data, size_t data_size, WebPPicture* c
     assert(ReadPNG(data, data_size, pic, 1, NULL));
     assert(pic);
 }
+
+void webp_encode(const WebPConfig* config, WebPPicture* picture) {
+    assert(WebPEncode(config, picture));
+}
+
+
+void webp_encode_pipeline(const uint8_t* data, size_t data_size) {
+    
+}
