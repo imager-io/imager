@@ -1,0 +1,7 @@
+.DS_Store
+**/.vscode
+**/build
+**/target
+**/*.rs.bk
+**/.commands.out.sh
+Cargo.lock
