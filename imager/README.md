@@ -109,22 +109,52 @@ $ cargo install --path . --force
 
 Note that long term wise I’d like to remove cargo from the installation picture for the CLI tool.
 
+# Documentation
+
+There are two `imager` sub-commands are
+* `imager opt` - Optimizes given files directly
+	> See [docs/imager-opt.md](docs/imager-opt.md)
+* `imager server`  - HTTP server alternative to `imager opt`
+	> See [docs/imager-server.md](docs/imager-server.md)
+
 
 # Examples
 
+## `imager opt`
+> See [docs/imager-opt.md](docs/imager-opt.md) for all features and their usage examples.
+
+### Basic
+
 ```shell
-$ imager opt -i path/to/images/**/*.jpeg -o assets/output/
+imager opt -i path/to/image.jpeg -o output/
 ```
 
-Also supports resizing:
+### Batch
+
 ```shell
-$ imager opt -i path/to/images/**/*.jpeg -o assets/output/ -s 1200x1200
+imager opt -i path/to/images/*.jpeg path/to/images/*.jpg path/to/images/*.png -o output/
 ```
 
-Help:
+## `imager server`
+> See [docs/imager-server.md](docs/imager-server.md) for details.
+
+### Start Server
+
 ```shell
-$ imager opt --help
+imager server --address 127.0.0.1:3030
 ```
+
+### Client
+> This example is using [HTTPie](https://httpie.org).
+
+Given some:
+* `path/to/input/image.jpeg`
+* `path/to/output` for `path/to/output/image.jpeg`
+
+```shell
+http 127.0.0.1:3030/opt < path/to/input/image.jpeg > path/to/output/image.jpeg
+```
+
 
 # More to come
 
