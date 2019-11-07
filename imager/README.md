@@ -111,11 +111,11 @@ Note that long term wise I’d like to remove cargo from the installation pictur
 
 # Documentation
 
-There are two `imager` sub-commands are
-* `imager opt` - Optimizes given files directly
-	> See [docs/imager-opt.md](docs/imager-opt.md)
-* `imager server`  - HTTP server alternative to `imager opt`
-	> See [docs/imager-server.md](docs/imager-server.md)
+> Everything is under `./docs`.
+
+## [CLI Interface - docs/imager-opt.md](docs/imager-opt.md)
+## [Server Interface - docs/imager-server.md](docs/imager-server.md)
+
 
 
 # Examples
