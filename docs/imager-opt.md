@@ -70,7 +70,7 @@ To optimize multiple images, given some:
 imager opt -i path/to/image/dir/*.jpeg -o output/path/
 ```
 
-The result will then be saved to `output/path/`; see [output flag](####-[required]-`-o`-or-`--output`) for details.
+The result will then be saved to `output/path/`; see [output flag](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md#imager-opt) for details.
 
 ## Batch - Multiple Input Types
 
@@ -84,7 +84,7 @@ To optimize multiple images, given some:
 imager opt -i path/to/image/dir/*.jpeg path/to/image/dir/*.jpg path/to/image/dir/*.png -o output/path/
 ```
 
-The result will then be saved to `output/path/`; see [output flag](####-[required]-`-o`-or-`--output`) for details.
+The result will then be saved to `output/path/`; see [output flag](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md#imager-opt) for details.
 
 Each output image will have the same file name as the input image. 
 
@@ -98,7 +98,7 @@ To optimize multiple images, given some:
 imager opt -i path/to/image/dir/**/*.* -o output/path/
 ```
 
-The result will then be saved to `output/path/`; see [output flag](####-[required]-`-o`-or-`--output`) for details.
+The result will then be saved to `output/path/`; see [output flag](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md#imager-opt) for details.
 
 
 ## Help:
