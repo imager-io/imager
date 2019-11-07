@@ -13,7 +13,7 @@ Two flags are important, `-i` and `-o`, for input image file(s), and the output 
 
 Images to be optimized. Can be multiple file paths, and also supports file globs.
 
-E.g. An input glob for both JPEG (VIA `image.jpeg` and `image.jpg` file extensions) and PNG files
+E.g. An input glob for both JPEG (`.jpeg` and `.jpg`) and PNG files
 ```
 imager -i images/*.jpeg images/*.jpg images/*.png -o output
 ```  
