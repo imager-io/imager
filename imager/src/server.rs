@@ -128,9 +128,11 @@ fn opt_route(
 
 pub fn run(address: &str) {
     println!("running server on: {}", address);
-    let server = || App::new().service(
-        web::resource("/").route(web::get().to(index))
-    );
+    let server = || {
+        App::new()
+            .route("/", web::get().to(index))
+            .route("/opt", web::post().to_async(opt_route))
+    };
     HttpServer::new(server)
         .bind(address)
         .expect(&format!("bind to address {}", address))
