@@ -1,6 +1,6 @@
 [package]
 name = "imager"
-version = "0.0.2"
+version = "0.0.3"
 authors = ["Colbyn Wadman <hello@colbyn.com>"]
 edition = "2018"
 # publish = false
@@ -9,7 +9,7 @@ repository = "https://github.com/colbyn/imager"
 homepage = "https://github.com/colbyn/imager"
 description = "Brute force image optimization."
 keywords = ["image", "optimization", "compression"]
-readme = "README.md"
+readme = "../README.md"
 
 [dependencies]
 libc = "^0.2"
