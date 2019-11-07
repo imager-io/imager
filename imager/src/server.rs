@@ -1,6 +1,9 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
+use std::collections::HashMap;
+use std::convert::{From, TryFrom};
+use std::str::FromStr;
 use futures::{Future, Stream};
 use actix_web::{
     web,
@@ -11,7 +14,57 @@ use actix_web::{
     HttpResponse,
 };
 use actix_web::http::StatusCode;
+use serde::{Serialize, Deserialize};
+use crate::data::{
+    Resolution,
+    OutputFormat,
+    OutputSize,
+};
 
+///////////////////////////////////////////////////////////////////////////////
+// DATA TYPES - OPT-PARAMETERS
+///////////////////////////////////////////////////////////////////////////////
+
+#[derive(Debug, Clone)]
+pub struct OptParameters {
+    size: OutputSize,
+    format: OutputFormat,
+}
+
+
+impl TryFrom<http::Uri> for OptParameters {
+    type Error = ();
+
+    fn try_from(uri: http::Uri) -> Result<Self, Self::Error> {
+        let query = uri
+            .query()
+            .unwrap_or(Default::default())
+            .split("&")
+            .filter_map(|param| -> Option<(String, String)> {
+                let ix = param.find("=")?;
+                let (left, right) = param.split_at(ix);
+                let right = right.trim_start_matches("=");
+                if left.is_empty() || right.is_empty() {
+                    None
+                } else {
+                    Some((left.to_owned(), right.to_owned()))
+                }
+            })
+            .collect::<HashMap<_, _>>();
+        let size = query
+            .get("size")
+            .and_then(|x| OutputSize::from_str(x).ok())
+            .unwrap_or_default();
+        let format = query
+            .get("format")
+            .and_then(|x| OutputFormat::from_str(x).ok())
+            .unwrap_or_default();
+        Ok(OptParameters {
+            size,
+            format,
+        })
+    }
+}
 
 
 
@@ -31,7 +84,8 @@ fn opt_route(
     req: HttpRequest,
     body: web::Payload,
 ) -> impl Future<Item = HttpResponse, Error = actix_web::error::Error> {
-    let settings_result: Result<(), ()> = unimplemented!();
+    let settings_result = OptParameters::try_from(req.uri().clone())
+        .map_err(|_| format!("invalid url query parameters"));
     let result = body
         .map_err(|e| {
             eprintln!("payload error: {:?}", e);
@@ -43,13 +97,10 @@ fn opt_route(
         })
         .map_err(|e| format!("http request payload issue"))
         .map(|x| x.to_vec())
-        .and_then(|x| match settings_result {
-            Ok(settings) => {
-                let xs: Vec<u8> = unimplemented!();
-                Ok(xs)
-            },
-            Err(()) => Err(String::from("invalid url query parameters"))
-        })
+        .and_then(|x| settings_result.map(|settings| {
+            let xs: Vec<u8> = unimplemented!();
+            xs
+        }))
         .map_err(|e| {
             let x = HttpResponse::InternalServerError()
                 .content_type("text/plain")
@@ -78,7 +129,7 @@ pub fn run(address: &str) {
     );
     HttpServer::new(server)
         .bind(address)
-        .expect(&format!("unable to bind to address {}", address))
+        .expect(&format!("bind to address {}", address))
         .run()
-        .expect("run server failed");
+        .expect("imager http server");
 }

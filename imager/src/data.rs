@@ -26,6 +26,12 @@ impl FromStr for OutputFormat {
     }
 }
 
+impl Default for OutputFormat {
+    fn default() -> Self {
+        OutputFormat::Jpeg
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // RESOLUTION
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,7 +73,7 @@ impl FromStr for Resolution {
 // OUTPUT-SIZE
 ///////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum OutputSize {
     /// Output image resolution. Akin to the 'px' CSS unit.
     Px(Resolution),
@@ -100,5 +106,18 @@ impl FromStr for OutputSize {
 impl Default for OutputSize {
     fn default() -> Self {
         OutputSize::Full
+    }
+}
+
+
+impl Serialize for OutputSize {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for OutputSize {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: serde::Deserializer<'de> {
+        String::deserialize(deserializer)?.parse().map_err(serde::de::Error::custom)
     }
 }
