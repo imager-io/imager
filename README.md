@@ -113,15 +113,15 @@ Note that long term wise I’d like to remove cargo from the installation pictur
 
 > Everything is under `./docs`.
 
-## [CLI Interface - docs/imager-opt.md](docs/imager-opt.md)
-## [Server Interface - docs/imager-server.md](docs/imager-server.md)
+## [CLI Interface - docs/imager-opt.md](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md)
+## [Server Interface - docs/imager-server.md](https://github.com/imager-io/imager/blob/master/docs/imager-server.md)
 
 
 
 # Examples
 
 ## `imager opt`
-> See [docs/imager-opt.md](docs/imager-opt.md) for all features and their usage examples.
+> See [docs/imager-opt.md](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md) for all features and their usage examples.
 
 ### Basic
 
@@ -136,7 +136,7 @@ imager opt -i path/to/images/*.jpeg path/to/images/*.jpg path/to/images/*.png -o
 ```
 
 ## `imager server`
-> See [docs/imager-server.md](docs/imager-server.md) for details.
+> See [docs/imager-server.md](https://github.com/imager-io/imager/blob/master/docs/imager-server.md) for details.
 
 ### Start Server
 
