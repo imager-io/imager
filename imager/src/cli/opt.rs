@@ -15,7 +15,7 @@ use crate::data::{
 
 #[derive(Debug, Clone, Serialize, Deserialize, StructOpt)]
 #[structopt(name = "imager", about = "The imager cli interface.")]
-pub struct Command {
+pub struct OptCommand {
     /// Input file paths (supports file globs).
     #[structopt(short, long, required = true, min_values = 1)]
     input: Vec<String>,
@@ -36,7 +36,7 @@ pub struct Command {
 }
 
 
-impl Command {
+impl OptCommand {
     pub fn run(&self) {
         let inputs = self.input
             .clone()

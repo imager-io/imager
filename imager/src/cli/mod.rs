@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 pub mod opt;
+pub mod server;
 
 use serde::{Serialize, Deserialize};
 use structopt::StructOpt;
@@ -21,13 +22,16 @@ pub enum Command {
     /// media distribution on the web.
     /// 
     /// E.g. `imager opt -i assets/**/*.jpeg -o assets/output/ -s 900x900`.
-    Opt(opt::Command),
+    Opt(opt::OptCommand),
+    /// Under development.
+    Server(server::ServerCommand),
 }
 
 impl Command {
     pub fn run(&self) {
         match self {
             Command::Opt(cmd) => cmd.run(),
+            Command::Server(cmd) => cmd.run(),
         }
     }
 }
