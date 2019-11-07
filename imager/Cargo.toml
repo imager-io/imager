@@ -1,14 +1,14 @@
 [package]
 name = "imager"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Colbyn Wadman <hello@colbyn.com>"]
 edition = "2018"
 # publish = false
 license = "MPL-2.0"
 repository = "https://github.com/colbyn/imager"
 homepage = "https://github.com/colbyn/imager"
-description = "Image optimization tool"
-keywords = ["image"]
+description = "Brute force image optimization."
+keywords = ["image", "optimization", "compression"]
 readme = "README.md"
 
 [dependencies]
