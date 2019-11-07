@@ -20,6 +20,8 @@ use crate::data::{
     OutputFormat,
     OutputSize,
 };
+use crate::opt;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // DATA TYPES - OPT-PARAMETERS
@@ -97,10 +99,12 @@ fn opt_route(
         })
         .map_err(|e| format!("http request payload issue"))
         .map(|x| x.to_vec())
-        .and_then(|x| settings_result.map(|settings| {
-            let xs: Vec<u8> = unimplemented!();
-            xs
-        }))
+        .and_then(|x| settings_result.map(|y| (x, y)))
+        .and_then(|(input_image, settings)| {
+            let source = opt::Source::new(&input_image, settings.size)?;
+            let (output, opt_meta) = source.run_search();
+            Ok(output)
+        })
         .map_err(|e| {
             let x = HttpResponse::InternalServerError()
                 .content_type("text/plain")
