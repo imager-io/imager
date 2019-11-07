@@ -19,7 +19,7 @@ imager -i images/*.jpeg images/*.jpg images/*.png -o output
 ```  
 
 #### [required] `-o` or `--output`
-> output directly
+> output directory
 
 Where to save the optimized images. If the given directory is missing it will be created automatically. 
 > For your sake, `imager opt` will never implicitly override input file paths. 
