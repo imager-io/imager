@@ -58,7 +58,7 @@ To optimize a single image, given some:
 imager opt -i path/to/image.jpeg -o output/path/
 ```
 
-The result will then be saved to `output/image.jpeg`.
+The result will then be saved to `output/path/image.jpeg`.
 
 ## Batch - Basic
 
