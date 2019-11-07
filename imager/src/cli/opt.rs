@@ -19,12 +19,15 @@ pub struct OptCommand {
     /// Input file paths (supports file globs).
     #[structopt(short, long, required = true, min_values = 1)]
     input: Vec<String>,
+    
     /// Output directory.
     #[structopt(short, long, parse(from_os_str))]
     output: PathBuf,
+    
     /// Output format.
     #[structopt(short, long, default_value = "jpeg")]
     format: OutputFormat,
+    
     /// Output image size (resolution).
     /// 
     /// To target a specific resolution (say 100x100) use `--size 100x100`.
@@ -33,6 +36,15 @@ pub struct OptCommand {
     /// To preserve the original resolution use `--size full`.
     #[structopt(short, long, default_value = "full")]
     size: OutputSize,
+    
+    /// Activate single I/O mode.
+    /// 
+    /// Changes the interpretation of the output argument. When activated,
+    /// will save the output image to the specified ‘output’ file path.
+    /// 
+    /// Obviously this argument is incompatible with multiple 'input' images.
+    #[structopt(long)]
+    single: bool,
 }
 
 
@@ -46,7 +58,7 @@ impl OptCommand {
             .flatten()
             .filter_map(Result::ok)
             .collect::<Vec<_>>();
-        let to_out_path = |input_path: &PathBuf| -> PathBuf {
+        let to_out_path_for = |input_path: &PathBuf| -> PathBuf {
             let filename = input_path
                 .file_name()
                 .expect("file name from path")
@@ -61,6 +73,11 @@ impl OptCommand {
             };
             output_path
         };
+        if self.single {
+            if inputs.len() > 1 {
+                panic!("The single flag is incompatible with multiple inputs.");
+            }
+        }
         let progress_bar = ProgressBar::new(inputs.len() as u64);
         progress_bar.tick();
         inputs
@@ -69,7 +86,17 @@ impl OptCommand {
                 let resize = self.size.clone();
                 let source = opt::Source::open(input_path, resize).expect("load source");
                 let (output, opt_meta) = source.run_search();
-                let output_path = to_out_path(input_path);
+                let output_path = if self.single {
+                    self.output
+                        .parent()
+                        .map(|parent| {
+                            std::fs::create_dir_all(parent)
+                                .expect("create missing parent directory");
+                        });
+                    self.output.clone()
+                } else {
+                    to_out_path_for(input_path)
+                };
                 std::fs::write(&output_path, output).expect("write output file");
                 progress_bar.inc(1);
             });
