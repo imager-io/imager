@@ -126,6 +126,14 @@ Help:
 $ imager opt --help
 ```
 
+# More to come
+
+Stay tuned for future updates. Currently in the works is an http server, and support for other image formats.
+
+
+# Feedback & Feature Requests
+
+Just use the GitHub issue tracker for this project.
 
 # Other Miscellaneous
 
