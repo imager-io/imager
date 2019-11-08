@@ -26,6 +26,13 @@ Where to save the optimized images. If the given directory is missing it will be
 
 The image output(s) will always have the same file name as the input image. So e.g. given `imager opt -i input1.jpeg -o output`. The optimized `input1.jpeg` will be saved under `output/input1.jpeg`. 
 
+#### [optional] `--single`
+> Activate single I/O mode.
+
+Changes the interpretation of the input and output arguments. When activated, will save the output image to the specified `output` file path. Obviously this argument is incompatible with multiple `input` images.
+
+Considered to be useful for scripts and other automated settings that deal with single files. Long term wise, I’m thinking of adding an argument called `--save path/to/image.jpeg` that expands to something like `--single --output path/to/image.jpeg`.
+
 #### [optional] `-s` or `--size`
 > optional max resolution constraint 
 

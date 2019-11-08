@@ -43,6 +43,8 @@ pub struct OptCommand {
     /// will save the output image to the specified ‘output’ file path.
     /// 
     /// Obviously this argument is incompatible with multiple 'input' images.
+    /// 
+    /// Will automatically crate the missing parent directory to 'output' if needed.
     #[structopt(long)]
     single: bool,
 }
