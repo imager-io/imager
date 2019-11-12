@@ -1,6 +1,6 @@
 [package]
 name = "imager"
-version = "0.0.3"
+version = "0.0.4"
 authors = ["Colbyn Wadman <hello@colbyn.com>"]
 edition = "2018"
 # publish = false
