@@ -15,10 +15,10 @@
   "license": "MIT",
   "homepage": "https://github.com/imager-io/imager",
   "scripts": {
-    "build:napi": "./build.sh && node_modules/.bin/node-gyp rebuild",
+    "build:rust": "./scripts/build-rust.sh && node_modules/.bin/node-gyp rebuild",
     "build:ts": "./node_modules/.bin/babel lib --out-dir dist --extensions '.ts','.js'",
     "build:ts:decl": "./node_modules/.bin/tsc --declaration --outDir dist --emitDeclarationOnly",
-    "build": "npm run build:napi && npm run build:ts && npm run build:ts:decl",
+    "build": "npm run build:rust && npm run build:ts && npm run build:ts:decl",
     "start": "npm run build",
     "test": "npm run build && ./node_modules/.bin/jest",
     "release": "npm run build && npm run doc && npm publish",
@@ -26,8 +26,8 @@
     "doc": "node_modules/.bin/typedoc --exclude ./lib/index.test.ts --out docs ./lib && touch docs/.nojekyll"
   },
   "files": [
-    "target/x86_64-apple-darwin/release/libweb_images_napi.dylib",
-    "target/x86_64-unknown-linux-gnu/release/libweb_images_napi.so",
+    "../../target/x86_64-unknown-linux-gnu/release/libimager_nodejs.so",
+    "../../target/x86_64-apple-darwin/release/libimager_nodejs.dylib",
     "dist/**/*.*",
     "binding.gyp"
   ],

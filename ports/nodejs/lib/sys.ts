@@ -8,8 +8,8 @@
 // import fs, { Dirent } from "fs";
 // import path from "path";
 
-// // @ts-ignore
-// import foreign from "../build/Release/web_images_napi.node";
+// @ts-ignore
+import foreign from "../build/Release/imager_napi.node";
 
 
 // ///////////////////////////////////////////////////////////////////////////////
