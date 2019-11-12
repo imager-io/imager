@@ -1,12 +1,12 @@
 {
-  "name": "imager-nodejs",
+  "name": "imager-io",
   "version": "0.0.0",
   "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/imager-io/imager"
   },
-  "description": "Brute force image optimization.",
+  "description": "[Official] Brute force image optimization.",
   "keywords": ["image", "optimization", "compression"],
   "license": "MIT",
   "homepage": "https://github.com/imager-io/imager",
