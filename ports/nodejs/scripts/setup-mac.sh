@@ -8,5 +8,3 @@ brew install gcc
 rustup target add i686-unknown-linux-gnu
 rustup target add x86_64-unknown-linux-gnu
 
-# CROSS-COMPILE - WINDOWS - DEPENDENCIES
-brew install mingw-w64
