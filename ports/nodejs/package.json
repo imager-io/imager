@@ -7,7 +7,11 @@
     "url": "https://github.com/imager-io/imager"
   },
   "description": "[Official] Brute force image optimization.",
-  "keywords": ["image", "optimization", "compression"],
+  "keywords": [
+    "image",
+    "optimization",
+    "compression"
+  ],
   "license": "MIT",
   "homepage": "https://github.com/imager-io/imager",
   "scripts": {
