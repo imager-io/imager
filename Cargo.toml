@@ -1,2 +1,5 @@
 [workspace]
-members = ["imager"]
+members = [
+    "imager",
+    "ports/imager-nodejs",
+]
