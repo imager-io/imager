@@ -14,7 +14,7 @@ use crate::napi::sys::*;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// ASYNC - OLD
+// ASYNC
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -707,7 +707,8 @@ impl<Func> ModuleExportable<(), ()> for Func where Func: Fn(NapiEnv)+'static {
 impl<Func> ModuleExportable<NapiValue, ()> for Func where Func: Fn(NapiEnv, NapiValue)+'static {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 1;
+            const EXPECTED_ARGC: usize = 1;
+            let mut argc = EXPECTED_ARGC;
             let mut argv: NapiValue = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
@@ -722,6 +723,13 @@ impl<Func> ModuleExportable<NapiValue, ()> for Func where Func: Fn(NapiEnv, Napi
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             (self)(env, argv);
             std::ptr::null_mut()
@@ -740,8 +748,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue)+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 2;
-            let mut argv: [NapiValue; 2] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 2;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -755,6 +764,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue)+'static
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             (self)(env, argv[0], argv[1]);
             std::ptr::null_mut()
@@ -767,8 +783,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue)+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 3;
-            let mut argv: [NapiValue; 3] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 3;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -782,6 +799,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue)+'static
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             (self)(env, argv[0], argv[1], argv[2]);
             std::ptr::null_mut()
@@ -794,8 +818,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue, NapiValue)+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 4;
-            let mut argv: [NapiValue; 4] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 4;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -809,6 +834,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue, NapiValue)+'static
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             (self)(env, argv[0], argv[1], argv[2], argv[4]);
             std::ptr::null_mut()
@@ -821,8 +853,9 @@ where Func: Fn(NapiEnv, NapiValue)->NapiValue+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 1;
-            let mut argv: [NapiValue; 1] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 1;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -836,6 +869,13 @@ where Func: Fn(NapiEnv, NapiValue)->NapiValue+'static
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             (self)(env, argv[0])
         }
@@ -847,8 +887,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue)->NapiValue+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 2;
-            let mut argv: [NapiValue; 2] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 2;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -862,6 +903,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue)->NapiValue+'static
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             (self)(env, argv[0], argv[1])
         }
@@ -873,8 +921,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue)->NapiValue+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 3;
-            let mut argv: [NapiValue; 3] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 3;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -889,6 +938,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue)->NapiValue+'static
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
             }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
+            }
             (self)(env, argv[0], argv[1], argv[2])
         }
     }
@@ -899,8 +955,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue, NapiValue)->NapiValue+'
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 4;
-            let mut argv: [NapiValue; 4] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 4;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -914,6 +971,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue, NapiValue)->NapiValue+'
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             (self)(env, argv[0], argv[1], argv[2], argv[3])
         }
@@ -944,8 +1008,9 @@ where Func: Fn(NapiEnv, NapiValue)->Option<NapiValue>+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 1;
-            let mut argv: [NapiValue; 1] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 1;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -959,6 +1024,13 @@ where Func: Fn(NapiEnv, NapiValue)->Option<NapiValue>+'static
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0]) {
                 Some(x) => x,
@@ -973,8 +1045,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue)->Option<NapiValue>+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 2;
-            let mut argv: [NapiValue; 2] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 2;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -988,6 +1061,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue)->Option<NapiValue>+'static
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0], argv[1]) {
                 Some(x) => x,
@@ -1002,8 +1082,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue)->Option<NapiValue>+'sta
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 3;
-            let mut argv: [NapiValue; 3] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 3;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -1017,6 +1098,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue)->Option<NapiValue>+'sta
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0], argv[1], argv[2]) {
                 Some(x) => x,
@@ -1031,8 +1119,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue, NapiValue)->Option<Napi
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 4;
-            let mut argv: [NapiValue; 4] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 4;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -1046,6 +1135,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue, NapiValue)->Option<Napi
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0], argv[1], argv[2], argv[3]) {
                 Some(x) => x,
@@ -1083,8 +1179,9 @@ where Func: Fn(NapiEnv, NapiValue)->Result<NapiValue, String>+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 1;
-            let mut argv: [NapiValue; 1] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 1;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this: NapiValue = std::mem::zeroed();
             let result = napi_get_cb_info(
                 env,
@@ -1098,6 +1195,13 @@ where Func: Fn(NapiEnv, NapiValue)->Result<NapiValue, String>+'static
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0]) {
                 Ok(x) => x,
@@ -1115,8 +1219,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue)->Result<NapiValue, String>+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 2;
-            let mut argv: [NapiValue; 2] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 2;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -1130,6 +1235,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue)->Result<NapiValue, String>+'static
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0], argv[1]) {
                 Ok(x) => x,
@@ -1147,8 +1259,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue)->Result<NapiValue, Stri
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 3;
-            let mut argv: [NapiValue; 3] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 3;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -1162,6 +1275,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue)->Result<NapiValue, Stri
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0], argv[1], argv[2]) {
                 Ok(x) => x,
@@ -1179,8 +1299,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue, NapiValue)->Result<Napi
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 4;
-            let mut argv: [NapiValue; 4] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 4;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -1194,6 +1315,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue, NapiValue)->Result<Napi
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0], argv[1], argv[2], argv[3]) {
                 Ok(x) => x,
@@ -1232,8 +1360,9 @@ where Func: Fn(NapiEnv, NapiValue)->Result<(), String>+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 1;
-            let mut argv: [NapiValue; 1] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 1;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -1247,6 +1376,13 @@ where Func: Fn(NapiEnv, NapiValue)->Result<(), String>+'static
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0]) {
                 Ok(x) => std::ptr::null_mut(),
@@ -1264,8 +1400,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue)->Result<(), String>+'static
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 2;
-            let mut argv: [NapiValue; 2] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 2;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -1279,6 +1416,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue)->Result<(), String>+'static
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0], argv[1]) {
                 Ok(x) => std::ptr::null_mut(),
@@ -1296,8 +1440,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue)->Result<(), String>+'st
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 3;
-            let mut argv: [NapiValue; 3] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 3;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -1311,6 +1456,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue)->Result<(), String>+'st
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0], argv[1], argv[2]) {
                 Ok(x) => std::ptr::null_mut(),
@@ -1328,8 +1480,9 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue, NapiValue)->Result<(), 
 {
     fn call_module_export(self, env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
         unsafe {
-            let mut argc = 4;
-            let mut argv: [NapiValue; 4] = std::mem::zeroed();
+            const EXPECTED_ARGC: usize = 4;
+            let mut argc = EXPECTED_ARGC;
+            let mut argv: [NapiValue; EXPECTED_ARGC] = std::mem::zeroed();
             let mut raw_this = std::ptr::null_mut();
             let result = napi_get_cb_info(
                 env,
@@ -1343,6 +1496,13 @@ where Func: Fn(NapiEnv, NapiValue, NapiValue, NapiValue, NapiValue)->Result<(), 
                 eprintln!("napi_get_cb_info failed");
                 throw_error(env, "module call failed");
                 return std::ptr::null_mut();
+            }
+            if argc != EXPECTED_ARGC {
+                throw_error(env, &format!(
+                    "invalid number of arguments: given {given}; expecting {expecting}",
+                    given=argc,
+                    expecting=EXPECTED_ARGC,
+                ));
             }
             match (self)(env, argv[0], argv[1], argv[2], argv[3]) {
                 Ok(x) => std::ptr::null_mut(),
@@ -1374,7 +1534,7 @@ macro_rules! i_add_module_exports {
     ($results:ident, $add_method:ident,) => {};
     ($results:ident, $add_method:ident, $name:ident => $value:path, $($rest:tt)*) => {{
         pub unsafe extern fn entry(env: NapiEnv, info: NapiCallbackInfo) -> NapiValue {
-            use $crate::utils::ModuleExportable;
+            use $crate::napi::utils::ModuleExportable;
             ModuleExportable::call_module_export($value, env, info)
         }
         $results.push($add_method(stringify!($name), entry));
@@ -1382,7 +1542,7 @@ macro_rules! i_add_module_exports {
     }};
     ($results:ident, $add_method:ident, $name:ident, $($rest:tt)*) => {{
         pub unsafe extern fn entry(env: napi_env, info: NapiCallbackInfo) -> NapiValue {
-            use $crate::utils::ModuleExportable;
+            use $crate::napi::utils::ModuleExportable;
             ModuleExportable::call_module_export($name, env, info)
         }
         $results.push($add_method(stringify!($name), entry));
@@ -1390,14 +1550,14 @@ macro_rules! i_add_module_exports {
     }};
     ($results:ident, $add_method:ident, $name:ident => $value:path) => {{
         pub unsafe extern fn entry(env: napi_env, info: NapiCallbackInfo) -> NapiValue {
-            use $crate::utils::ModuleExportable;
+            use $crate::napi::utils::ModuleExportable;
             ModuleExportable::call_module_export($value, env, info)
         }
         $results.push($add_method(stringify!($name), entry));
     }};
     ($results:ident, $add_method:ident, $name:ident) => {{
         pub unsafe extern fn entry(env: napi_env, info: NapiCallbackInfo) -> NapiValue {
-            use $crate::utils::ModuleExportable;
+            use $crate::napi::utils::ModuleExportable;
             ModuleExportable::call_module_export($name, env, info)
         }
         $results.push($add_method(stringify!($name), entry));
@@ -1431,13 +1591,13 @@ macro_rules! library_exports {
             use std::os::raw::c_char;
             use std::ptr;
             use napi_sys_dev::*;
-            use $crate::sys::*;
+            use $crate::napi::sys::*;
             // use $crate::*;
 
             #[no_mangle]
             pub unsafe extern fn init(env: napi_env, export: NapiValue) -> NapiValue {
                 
-                use $crate::utils::RawExportFnSignature;
+                use $crate::napi::utils::RawExportFnSignature;
                 let mut results: Vec<Result<(), ()>> = Vec::new();
                 let add_method = |name: &str, callback: RawExportFnSignature| -> Result<(), ()> {
                     let callback_name = std::ffi::CString::new(name).expect("CString::new failed");

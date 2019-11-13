@@ -19,7 +19,6 @@
     "build:ts": "./node_modules/.bin/babel lib --out-dir dist --extensions '.ts','.js'",
     "build:ts:decl": "./node_modules/.bin/tsc --declaration --outDir dist --emitDeclarationOnly",
     "build": "npm run build:rust && npm run build:ts && npm run build:ts:decl",
-    "start": "npm run build",
     "test": "npm run build && ./node_modules/.bin/jest",
     "release": "npm run build && npm run doc && npm publish",
     "postinstall": "node_modules/.bin/node-gyp rebuild",
