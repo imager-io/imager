@@ -4,6 +4,9 @@
 use crate::opt;
 pub use crate::data::{Resolution, OutputSize};
 
+pub fn version() -> String {
+    String::from(env!("CARGO_PKG_VERSION"))
+}
 
 pub fn opt(input_image: &Vec<u8>, resize: OutputSize) -> Result<Vec<u8>, String> {
     let source = opt::Source::new(input_image, resize)?;
