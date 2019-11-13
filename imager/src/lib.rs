@@ -8,3 +8,4 @@ pub mod opt;
 pub mod cli;
 pub mod data;
 pub mod server;
+pub mod api;
