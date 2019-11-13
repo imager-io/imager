@@ -1,2 +1,11 @@
+###############################################################################
+# BUILD
+###############################################################################
 cargo build --release --target=x86_64-apple-darwin
-# cargo build --release --target=x86_64-unknown-linux-gnu
+
+###############################################################################
+# COPY
+###############################################################################
+mkdir -p dist/native
+cp  ../../target/x86_64-apple-darwin/release/libimager_nodejs.dylib \
+    dist/native/libimager_nodejs.apple.node

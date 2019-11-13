@@ -6,6 +6,9 @@ pub mod api;
 
 
 library_exports!{
-    hello_world => crate::api::imager::hello_world
+    version => crate::api::version,
+    buffer_open => crate::api::buffer_open,
+    buffer_save => crate::api::buffer_save,
+    buffer_opt => crate::api::buffer_opt,
 }
 

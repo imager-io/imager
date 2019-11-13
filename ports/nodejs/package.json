@@ -15,20 +15,16 @@
   "license": "MIT",
   "homepage": "https://github.com/imager-io/imager",
   "scripts": {
-    "build:rust": "./scripts/build-rust.sh && node_modules/.bin/node-gyp rebuild",
+    "build:rust": "./scripts/build-rust.sh",
     "build:ts": "./node_modules/.bin/babel lib --out-dir dist --extensions '.ts','.js'",
     "build:ts:decl": "./node_modules/.bin/tsc --declaration --outDir dist --emitDeclarationOnly",
     "build": "npm run build:rust && npm run build:ts && npm run build:ts:decl",
     "test": "npm run build && ./node_modules/.bin/jest",
     "release": "npm run build && npm run doc && npm publish",
-    "postinstall": "node_modules/.bin/node-gyp rebuild",
     "doc": "node_modules/.bin/typedoc --exclude ./lib/index.test.ts --out docs ./lib && touch docs/.nojekyll"
   },
   "files": [
-    "../../target/x86_64-unknown-linux-gnu/release/libimager_nodejs.so",
-    "../../target/x86_64-apple-darwin/release/libimager_nodejs.dylib",
-    "dist/**/*.*",
-    "binding.gyp"
+    "dist/**/*.*"
   ],
   "devDependencies": {
     "@babel/cli": "^7",
@@ -41,7 +37,6 @@
     "@types/node": "^12.7.12",
     "babel-preset-env": "^1",
     "jest": "^24.9.0",
-    "node-gyp": "^6.0.0",
     "ts-jest": "^24.1.0",
     "typedoc": "^0.15.0",
     "typescript": "^3.6.4",
@@ -49,6 +44,5 @@
     "webpack-cli": "^3",
     "webpack-merge": "^4"
   },
-  "gypfile": true,
   "types": "./dist/index.d.ts"
 }
