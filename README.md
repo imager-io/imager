@@ -65,7 +65,9 @@ I’m considering `WebP` for the next supported codec.
 
 | Name | Status |
 | ------ | -------- |
+| Imager CLI   | ✅ [GOOD] |
 | Webpack   | ❎ [IN-PROCESS] |
+
 
 ## Objective
 
