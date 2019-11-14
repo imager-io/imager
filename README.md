@@ -17,7 +17,7 @@ imager        : ▇▇▇▇ 4.20M
 Something that isn’t benchmarked here that I've been curious about. Presumably, negatively effecting every image related SAAS venture. Latency and bandwidth overhead. Unless I suppose clients are communicating directly to such services instead of VIA an intermediate backend server.
 
 
-## Status
+## Status - Fundamental
 
 ### Supported **Input** Image Formats
 
@@ -45,6 +45,8 @@ Essentially supports any image decodable by [image-rs](https://github.com/i
 For now, support will pretty much just correspond to whats popularly available in browsers.
 
 I’m considering `WebP` for the next supported codec.
+
+## Status - Ecosystem
 
 ### Supported Operating Systems
 
