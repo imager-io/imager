@@ -189,7 +189,8 @@ Just use the GitHub issue tracker for this project.
 
 ## Notes for Developers
 
-I’d recommend always using the `release` flag when in development. E.g. `cargo run --release`. Otherwise it’ll be significantly slower. 
+* Rust
+	* I’d recommend always using the `release` flag when in development. E.g. `cargo run --release`. Otherwise it’ll be significantly slower. 
 
 ## Articles
 
