@@ -61,7 +61,7 @@ I’m considering `WebP` for the next supported codec.
 | Rust   | ✅ [GOOD] |
 | NodeJS   | ✅ [PRE-RELEASE] |
 
-### Supported Development Tools
+### Supported Dev Tools
 
 | Name | Status |
 | ------ | -------- |
@@ -73,7 +73,7 @@ Nothing short of becoming *the industry standard* for image optimization! :)
 
 More concretely. Expose a uniform interface for image transcoding and optimization of popular codecs. Based on off-the-shelf encoders, akin to FFmpeg. With support predominately concerned with lossy codecs.
 
-# Building From Source
+# Imager Executable - Building From Source
 
 ## Requirements
 
