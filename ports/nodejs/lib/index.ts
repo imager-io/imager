@@ -1,45 +1,83 @@
-import os from "os";
+import * as sys from "./sys";
+import { type } from "os";
+import {OptArgs} from "./data";
 
-// import foreign from "./native/libimager_nodejs.apple.node";
-const imager_native = function(){
-    let platform = os.platform();
-    console.assert(
-        platform === "darwin" ||
-        platform === "linux" ||
-        platform === "win32"
-    );
-    let apple_path = "./native/libimager_nodejs.apple.node";
-    let linux_path = "./native/libimager_nodejs.linux.node";
-    let windows_path = "./native/libimager_nodejs.windows.node";
-    let unknown_platform = (): string => {
-        throw "unknown platform";
-    };
-    let active_path = (platform === "darwin") ? apple_path
-        : (platform === "linux") ? linux_path
-        : (platform === "win32") ? windows_path
-        : unknown_platform();
-    return require(active_path);
-}();
+export * from "./data";
 
 
-// console.log("module: ", imager_native);
-// imager_native
-//     .version()
-//     .then((res : any) => console.log("result: ", res));
+/**
+ * Some kinda image binary. It’s not ‘decoded’ so we don’t know e.g. it’s resolution.
+ * 
+ * This is the most direct interface to Imagers optimization functionality.
+ * 
+ * This is also the return type for “optimized images”. 
+ * 
+ * 
+ * Example:
+ * ```typescript
+ * ImageBuffer
+ *        .open("path/to/input.jpeg")
+ *        .then(img => img.opt("900x900"))
+ *        .then(img => img.save("test.jpeg"));
+ * ```
+ */
+export class ImageBuffer {
+    private handle!: sys.Buffer;
 
-const input_path = "assets/samples/small/low/2yV-pyOxnPw300.jpeg";
+    /**
+     * Treat this as private unless you’re using the lower level `sys` module.
+     * For construction prefer the `Buffer.open` and related static methods.
+     */
+    constructor(x: sys.Buffer) {
+        console.assert(typeof(x) === 'object');
+        console.assert((x as object).hasOwnProperty("type"));
+        console.assert((x as object).hasOwnProperty("ptr"));
+        console.assert(x.type === "Buffer");
+        this.handle = x;
+    }
 
-imager_native
-    .buffer_open(input_path)
-    .then((buffer: any) => {
-        return imager_native.buffer_opt(buffer, "full");
-    })
-    .then((buffer: any) => {
-        return imager_native.buffer_save(buffer, "test.jpeg");
-    });
+    ///////////////////////////////////////////////////////////////////////////
+    // CONSTRUCTION
+    ///////////////////////////////////////////////////////////////////////////
 
-// imager_native
-//     .opt_from_file("../assets/samples/small/low/2yV-pyOxnPw300.jpeg", "full")
-//     .then((x: Array<u>) => {
-//         console.log("done");
-//     });
+    /**
+     * 
+     * Open the image located at the path specified.
+     * 
+     * ```typescript
+     * let buffer: Promise<buffer> = Buffer
+     *      .open("test.jpeg")
+     *      .then(x => {
+     *          console.log("loaded buffer");
+     *          return x;
+     *      });
+     * ```
+     */
+    static async open(path: string): Promise<ImageBuffer> {
+        console.assert(typeof(path) === 'string');
+        return sys
+            .buffer_open(path)
+            .then(x => new ImageBuffer(x));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // METHODS
+    ///////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Save the buffer at the path specified.
+     */
+    async save(path: string): Promise<void> {
+        console.assert(typeof(path) === 'string');
+        return sys.buffer_save(this.handle, path);
+    }
+
+    /**
+     * Optimize the given image buffer.
+     */
+    async opt(args?: OptArgs | string): Promise<ImageBuffer> {
+        return sys
+            .buffer_opt(this.handle, args)
+            .then(x => new ImageBuffer(x));
+    }
+}
