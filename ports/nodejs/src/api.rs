@@ -1,5 +1,6 @@
 pub mod data;
 
+use std::str::FromStr;
 use std::cell::{RefCell, RefMut, Ref};
 use std::rc::Rc;
 use std::iter::FromIterator;
@@ -79,8 +80,10 @@ pub fn buffer_save(
     );
     fn compute(payload: Input) -> Output {
         let (buffer, path) = payload;
-        std::fs::write(path, buffer.as_vec_ref())
-            .map_err(|x| format!("{}", x))
+        PathBuf::from(&path)
+            .parent()
+            .map(|x| std::fs::create_dir_all(x));
+        std::fs::write(path, buffer.as_vec_ref()).map_err(|x| format!("{}", x))
     }
     fn finalize(env: NapiEnv, out: Output) -> Result<NapiValue, NapiValue> {
         out .map(|x| to_napi_value(env, x))
