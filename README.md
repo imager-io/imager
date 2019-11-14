@@ -96,7 +96,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 #### For MacOS
 
 ```shell
-brew install llvm
+$ brew install llvm
 ```
 
 #### For Debian-based Linuxes
@@ -148,13 +148,13 @@ Note that long term wise I’d like to remove cargo from the installation pictur
 ### Basic
 
 ```shell
-imager opt -i path/to/image.jpeg -o output/
+$ imager opt -i path/to/image.jpeg -o output/
 ```
 
 ### Batch
 
 ```shell
-imager opt -i path/to/images/*.jpeg path/to/images/*.jpg path/to/images/*.png -o output/
+$ imager opt -i path/to/images/*.jpeg path/to/images/*.jpg path/to/images/*.png -o output/
 ```
 
 ## `imager server`
@@ -163,7 +163,7 @@ imager opt -i path/to/images/*.jpeg path/to/images/*.jpg path/to/images/*.png -o
 ### Start Server
 
 ```shell
-imager server --address 127.0.0.1:3030
+$ imager server --address 127.0.0.1:3030
 ```
 
 ### Client
@@ -174,7 +174,7 @@ Given some:
 * `path/to/output` for `path/to/output/image.jpeg`
 
 ```shell
-http 127.0.0.1:3030/opt < path/to/input/image.jpeg > path/to/output/image.jpeg
+$ http 127.0.0.1:3030/opt < path/to/input/image.jpeg > path/to/output/image.jpeg
 ```
 
 
