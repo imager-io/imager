@@ -46,6 +46,26 @@ For now, support will pretty much just correspond to whats popularly available i
 
 I’m considering `WebP` for the next supported codec.
 
+### Supported Operating Systems
+
+| OS     | Current Status |
+| ------ | -------- |
+| Linux   | ✅ [GOOD] |
+| MacOS   | ✅ [GOOD] |
+| Windows   | ❌ [UNPRIORITIZED] |
+
+### Supported Languages
+
+| Name | Status |
+| ------ | -------- |
+| Rust   | ✅ [GOOD] |
+| NodeJS   | ✅ [PRE-RELEASE] |
+
+### Supported Development Tools
+
+| Name | Status |
+| ------ | -------- |
+| Webpack   | ❎ [IN-PROCESS] |
 
 ## Objective
 
