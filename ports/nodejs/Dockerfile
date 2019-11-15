@@ -69,7 +69,7 @@ RUN npm install
 # PROJECT - CODE & OTHER
 ADD lib lib
 ADD assets/test assets/test
-ADD scripts scripts
+ADD scripts/build-rust.sh scripts/build-rust.sh
 
 # PROJECT - BUILD CODE
 ENV PRE_BUILT_LIB_IMAGER_NODEJS=1
