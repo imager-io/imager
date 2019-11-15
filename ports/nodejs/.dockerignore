@@ -1,2 +1,5 @@
 target/
 node_modules/
+dist/
+assets/output/
+assets/samples/
