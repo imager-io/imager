@@ -77,6 +77,76 @@ Nothing short of becoming *the industry standard* for image optimization! :)
 
 More concretely. Expose a uniform interface for image transcoding and optimization of popular codecs. Based on off-the-shelf encoders, akin to FFmpeg. With support predominately concerned with lossy codecs.
 
+## Top-Level Organization: 
+```
+.
+├── docs
+│   ├── imager-nodejs.md
+│   ├── imager-opt.md
+│   └── imager-server.md
+├── extras
+│   ├── imager-jpeg2000
+│   ├── imager-png
+│   └── imager-webp
+├── imager
+├── plugins
+└── ports
+    └── nodejs
+```
+* `./imager`: The core imager codebase for the Rust library, `imager` CLI tool and server.
+* `./docs`: Just the general docs.
+* `./extras`: Just new stuff under development and not yet integrated with `./imager`, nor officially released.
+* `./plugins`: Other developer tools and plugins; nothing officially released yet.
+* `./ports`: Language specific ports.
+	* `./ports/nodejs`: The NodeJS library. The NPM releases is supposed to be self contained.
+
+
+# Documentation
+
+> Everything is under `./docs`.
+
+## [CLI Interface - [root]/docs/imager-opt.md](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md)
+## [Server Interface - [root]/docs/imager-server.md](https://github.com/imager-io/imager/blob/master/docs/imager-server.md)
+## [NodeJS API - [root]/docs/imager-nodejs.md](https://github.com/imager-io/imager/blob/master/docs/imager-nodejs.md)
+
+
+# CLI Examples
+
+## `imager opt`
+> See [docs/imager-opt.md](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md) for all features and their usage examples.
+
+### Basic
+
+```shell
+$ imager opt -i path/to/image.jpeg -o output/
+```
+
+### Batch
+
+```shell
+$ imager opt -i path/to/images/*.jpeg path/to/images/*.jpg path/to/images/*.png -o output/
+```
+
+## `imager server`
+> See [docs/imager-server.md](https://github.com/imager-io/imager/blob/master/docs/imager-server.md) for details.
+
+### Start Server
+
+```shell
+$ imager server --address 127.0.0.1:3030
+```
+
+### Client
+> This example is using [HTTPie](https://httpie.org).
+
+Given some:
+* `path/to/input/image.jpeg`
+* `path/to/output` for `path/to/output/image.jpeg`
+
+```shell
+$ http 127.0.0.1:3030/opt < path/to/input/image.jpeg > path/to/output/image.jpeg
+```
+
 # Imager CLI - Building From Source
 
 ## Requirements
@@ -133,52 +203,6 @@ $ cargo install --path . --force
 
 Note that long term wise I’d like to remove cargo from the installation picture for the CLI tool.
 
-# Documentation
-
-> Everything is under `./docs`.
-
-## [CLI Interface - [root]/docs/imager-opt.md](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md)
-## [Server Interface - [root]/docs/imager-server.md](https://github.com/imager-io/imager/blob/master/docs/imager-server.md)
-## [NodeJS API - [root]/docs/imager-nodejs.md](https://github.com/imager-io/imager/blob/master/docs/imager-nodejs.md)
-
-
-# Examples
-
-## `imager opt`
-> See [docs/imager-opt.md](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md) for all features and their usage examples.
-
-### Basic
-
-```shell
-$ imager opt -i path/to/image.jpeg -o output/
-```
-
-### Batch
-
-```shell
-$ imager opt -i path/to/images/*.jpeg path/to/images/*.jpg path/to/images/*.png -o output/
-```
-
-## `imager server`
-> See [docs/imager-server.md](https://github.com/imager-io/imager/blob/master/docs/imager-server.md) for details.
-
-### Start Server
-
-```shell
-$ imager server --address 127.0.0.1:3030
-```
-
-### Client
-> This example is using [HTTPie](https://httpie.org).
-
-Given some:
-* `path/to/input/image.jpeg`
-* `path/to/output` for `path/to/output/image.jpeg`
-
-```shell
-$ http 127.0.0.1:3030/opt < path/to/input/image.jpeg > path/to/output/image.jpeg
-```
-
 
 # More to come
 
@@ -200,20 +224,11 @@ Just use the GitHub issue tracker for this project.
 
 * [Modern Image Optimization for 2020 - Issues, Solutions, and Open Source Solutions](https://medium.com/@colbyn/modern-image-optimization-for-2020-issues-solutions-and-open-source-solutions-543af00e3e51)
 
-
 ## Future - Short (to long) Term
 
 In addition to the preexisting CLI tool and in accordance with “becoming the industry standard” mantra.
 
 Port to every major programming language. Idiomatically following the given languages conventions, including dependency management. What I have in mind is not requiring cargo in the installation picture, and distributing self contained libs. 
-
-So for NodeJS using NAPI (which I have some experience with) computationally expensive work should be offloaded from the main thread to the NodeJS managed thread pool. Following on the JS side, control will return immediately with a promise wrapping the eventual result. I’ve written a macro that does essentially this [here](https://github.com/colbyn/web-images-js/blob/9b766b8bdfccb2c429832e461d2be680b61966c9/src/utils.rs#L116).
-
-
-Although for now the CLI tool can work everywhere, as is common with FFmpeg.
-
-
-
 
 ## Future - Long Term
 
@@ -223,9 +238,7 @@ Although for now the CLI tool can work everywhere, as is common with FFmpeg.
 	1. Backend/frontend developers (outside the video streaming world) aren’t accustomed to fragmented codec support. Since e.g. JPEG is practically supported everywhere.
 	2. Laymen users copying images will probably expect the download to be something encoded as JPEG. I think browsers send a redundant http request when ‘copying’ an image. So perhaps the request can be intercepted and made to return a JPEG encoded variant. This way we don’t need to do anything that visually or rather noticeably overrides default browser behavior.
 
-
 **Note that all future aspirations is predominantly predicated on this project getting popular and/or funding (e.g. VIA Patreon).** So if this project is beneficial at your work, let others know about it! :)
-
 
 ## Regarding Imagers SAAS competitors
 > This is something I realized from trying to implement a SAAS model.
