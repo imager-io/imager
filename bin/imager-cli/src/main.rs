@@ -44,14 +44,9 @@ pub struct Command {
     #[structopt(short, long, default_value = "full")]
     size: OutputSize,
     
-    /// Activate single I/O mode.
+    /// Treat the output as a file path instead of a directory.
     /// 
-    /// Changes the interpretation of the output argument. When activated,
-    /// will save the output image to the specified ‘output’ file path.
-    /// 
-    /// Obviously this argument is incompatible with multiple 'input' images.
-    /// 
-    /// Will automatically crate the missing parent directory to 'output' if needed.
+    /// Intended to be useful for scripts and other automated cases.
     #[structopt(long)]
     single: bool,
 }
