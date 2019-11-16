@@ -1,5 +1,9 @@
+# Links
+* [JS Example Project](https://github.com/imager-io/imager-nodejs-example)
+    * Uses self-contained NPM release.
+
 # Building From Source
-> For imager developers only. Laymen devs should probably stick to NPM releases (since it’s easier).
+> For imager developers only. Laymen devs should probably stick to the self-contained NPM release (since it’s easier).
 
 ## Requirements
 
@@ -47,7 +51,7 @@ $ npm run test # optional
 
 
 # Building VIA Docker (For Linux Users)
-> For imager developers only. Laymen devs should probably stick to NPM releases (since it’s easier).
+> For imager developers only. Laymen devs should probably stick to the self-contained NPM release (since it’s easier).
 
 ```shell
 $ git clone https://github.com/imager-io/imager.git && cd imager/ports/nodejs/
