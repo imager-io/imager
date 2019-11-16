@@ -88,12 +88,12 @@ More concretely. Expose a uniform interface for image transcoding and optimizati
 │   ├── imager-jpeg2000
 │   ├── imager-png
 │   └── imager-webp
-├── imager
+├── imager-rs
 ├── plugins
 └── ports
     └── nodejs
 ```
-* `./imager`: The core imager codebase for the Rust library, `imager` CLI tool and server.
+* `./imager-rs`: The core imager codebase for the Rust library, `imager` CLI tool and server.
 * `./docs`: Just the general docs.
 * `./extras`: Just new stuff under development and not yet integrated with `./imager`, nor officially released.
 * `./plugins`: Other developer tools and plugins; nothing officially released yet.
