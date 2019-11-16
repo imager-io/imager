@@ -78,7 +78,7 @@ Nothing short of becoming *the industry standard* for image optimization! :)
 More concretely. Expose a uniform interface for image transcoding and optimization of popular codecs. Based on off-the-shelf encoders, akin to FFmpeg. With support predominately concerned with lossy codecs.
 
 ## More to come
-Stay tuned for future updates. Currently in the works is support for other image formats.
+Stay tuned for future updates. Currently in the works is support for other image formats, and broader ecosystem support.
 
 ## Feedback & Feature Requests
 Just use the GitHub issue tracker for this project.
