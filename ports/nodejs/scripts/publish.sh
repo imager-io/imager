@@ -9,7 +9,6 @@ then
     exit 1
 fi
 
-
 # BUILD LINUX
 ./scripts/docker/build.sh
 
