@@ -1,1 +1,0 @@
-cargo install --force --path .

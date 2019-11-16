@@ -3,4 +3,8 @@ members = [
     "imager-rs",
 ]
 
-exclude = ["ports/nodejs"]
+exclude = [
+    "ports/nodejs",
+    "bin/imager-cli",
+    "bin/imager-server",
+]

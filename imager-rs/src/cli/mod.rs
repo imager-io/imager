@@ -4,34 +4,31 @@
 pub mod opt;
 pub mod server;
 
-use serde::{Serialize, Deserialize};
-use structopt::StructOpt;
+// use serde::{Serialize, Deserialize};
+// use structopt::StructOpt;
 
 
-/// The imager CLI interface.
-/// 
-/// Currently just supports the optimization sub-command.
-/// See `imager opt --help` for details.
-#[derive(Debug, Clone, Serialize, Deserialize, StructOpt)]
-#[structopt(name = "imager", rename_all = "kebab-case")]
-pub enum Command {
-    /// Optimize the given media for distribution on the web.
-    /// 
-    /// Performs a brute force ‘rate control’ search using ML based metrics;
-    /// essentially does what you should otherwise be manually doing for
-    /// media distribution on the web.
-    /// 
-    /// E.g. `imager opt -i assets/**/*.jpeg -o assets/output/ -s 900x900`.
-    Opt(opt::OptCommand),
-    /// Under development.
-    Server(server::ServerCommand),
-}
+// /// The imager CLI interface.
+// #[derive(Debug, Clone, Serialize, Deserialize, StructOpt)]
+// #[structopt(name = "imager", rename_all = "kebab-case")]
+// pub enum Command {
+//     /// Optimize the given media for distribution on the web.
+//     /// 
+//     /// Performs a brute force ‘rate control’ search using ML based metrics;
+//     /// essentially does what you should otherwise be manually doing for
+//     /// media distribution on the web.
+//     /// 
+//     /// E.g. `imager opt -i assets/**/*.jpeg -o assets/output/ -s 900x900`.
+//     Opt(opt::OptCommand),
+//     /// 
+//     Server(server::ServerCommand),
+// }
 
-impl Command {
-    pub fn run(&self) {
-        match self {
-            Command::Opt(cmd) => cmd.run(),
-            Command::Server(cmd) => cmd.run(),
-        }
-    }
-}
+// impl Command {
+//     pub fn run(&self) {
+//         match self {
+//             Command::Opt(cmd) => cmd.run(),
+//             Command::Server(cmd) => cmd.run(),
+//         }
+//     }
+// }

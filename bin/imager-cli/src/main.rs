@@ -1,17 +1,20 @@
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+#![allow(unused)]
 use std::path::PathBuf;
 use rayon::prelude::*;
 use serde::{Serialize, Deserialize};
 use structopt::StructOpt;
 use indicatif::{ProgressBar, ProgressStyle};
-use crate::opt;
-use crate::data::{
+use imager::opt;
+use imager::data::{
     OutputFormat,
     OutputSize,
     Resolution,
 };
+
+
+///////////////////////////////////////////////////////////////////////////////
+// CLI FRONTEND
+///////////////////////////////////////////////////////////////////////////////
 
 /// The Imager CLI Interface
 #[derive(Debug, Clone, Serialize, Deserialize, StructOpt)]
@@ -19,7 +22,7 @@ use crate::data::{
     name = "imager",
     rename_all = "kebab-case"
 )]
-pub struct OptCommand {
+pub struct Command {
     /// Input file paths (supports file globs).
     #[structopt(short, long, required = true, min_values = 1)]
     input: Vec<String>,
@@ -54,7 +57,7 @@ pub struct OptCommand {
 }
 
 
-impl OptCommand {
+impl Command {
     pub fn run(&self) {
         let inputs = self.input
             .clone()
@@ -108,4 +111,14 @@ impl OptCommand {
             });
         progress_bar.finish();
     }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// MAIN
+///////////////////////////////////////////////////////////////////////////////
+
+fn main() {
+    let cmd = Command::from_args();
+    cmd.run();
 }

@@ -1,16 +1,16 @@
 # CLI Interface
 
-## `imager server`
+## `imager-server`
 
 To start the server, just run:
 
 ```
-imager server --address 127.0.0.1:3030
+imager-server --address 127.0.0.1:3030
 ```
 
 ### Help
 ```
-imager server --help
+imager-server --help
 ```
 
 # HTTP Interface - Endpoints
@@ -39,7 +39,7 @@ Currently only `jpeg` is supported, so this parameter isn’t all that useful.
 ## Start Server
 
 ```shell
-imager server --address 127.0.0.1:3030
+imager-server --address 127.0.0.1:3030
 ```
 
 ## Client

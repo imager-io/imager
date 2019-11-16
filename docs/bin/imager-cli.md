@@ -1,11 +1,6 @@
 # Interface
 The overall interface is very simple.
 
-There are two `imager` sub-commands:
-* `imager opt` - optimizes given files directly
-* `imager server`  - http server alternative to `imager opt`.
-
-## `imager opt`
 Two flags are important, `-i` and `-o`, for input image file(s), and the output directory, respectively. 
 
 #### [required] `-i` or `--input` 
@@ -22,9 +17,9 @@ imager -i images/*.jpeg images/*.jpg images/*.png -o output
 > output directory
 
 Where to save the optimized images. If the given directory is missing it will be created automatically. 
-> For your sake, `imager opt` will never implicitly override input file paths. 
+> For your sake, `imager` will never implicitly override input file paths. 
 
-The image output(s) will always have the same file name as the input image. So e.g. given `imager opt -i input1.jpeg -o output`. The optimized `input1.jpeg` will be saved under `output/input1.jpeg`. 
+The image output(s) will always have the same file name as the input image. So e.g. given `imager -i input1.jpeg -o output`. The optimized `input1.jpeg` will be saved under `output/input1.jpeg`. 
 
 #### [optional] `--single`
 > Activate single I/O mode.
@@ -40,7 +35,7 @@ If the given image exceeds the given `size` or resolution. Downsize to given dim
 
 Example:
 ```shell
-imager opt -i path/to/image.jpeg -o output -s 1200x1200
+imager -i path/to/image.jpeg -o output -s 1200x1200
 ```
 
 #### [optional] `-f` or `—format`
@@ -50,10 +45,10 @@ Currently only `jpeg` is supported, so this parameter isn’t all that useful.
  
 Example
 ```shell
-imager opt -i path/to/image.jpeg -o output -f jpeg
+imager -i path/to/image.jpeg -o output -f jpeg
 ```
 
-# Examples of `imager opt`
+# Examples of `imager`
 
 ## Basic
 
@@ -62,7 +57,7 @@ To optimize a single image, given some:
 * `output/path/`
 
 ```shell
-imager opt -i path/to/image.jpeg -o output/path/
+imager -i path/to/image.jpeg -o output/path/
 ```
 
 The result will then be saved to `output/path/image.jpeg`.
@@ -74,7 +69,7 @@ To optimize multiple images, given some:
 * `output/path/`
 
 ```shell
-imager opt -i path/to/image/dir/*.jpeg -o output/path/
+imager -i path/to/image/dir/*.jpeg -o output/path/
 ```
 
 The result will then be saved to `output/path/`; see [output flag](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md#imager-opt) for details.
@@ -88,7 +83,7 @@ To optimize multiple images, given some:
 * `output/path/`
 
 ```shell
-imager opt -i path/to/image/dir/*.jpeg path/to/image/dir/*.jpg path/to/image/dir/*.png -o output/path/
+imager -i path/to/image/dir/*.jpeg path/to/image/dir/*.jpg path/to/image/dir/*.png -o output/path/
 ```
 
 The result will then be saved to `output/path/`; see [output flag](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md#imager-opt) for details.
@@ -102,7 +97,7 @@ To optimize multiple images, given some:
 * `output/path/`
 
 ```shell
-imager opt -i path/to/image/dir/**/*.* -o output/path/
+imager -i path/to/image/dir/**/*.* -o output/path/
 ```
 
 The result will then be saved to `output/path/`; see [output flag](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md#imager-opt) for details.
@@ -110,5 +105,5 @@ The result will then be saved to `output/path/`; see [output flag](https://githu
 
 ## Help:
 ```shell
-$ imager opt --help
+$ imager --help
 ```

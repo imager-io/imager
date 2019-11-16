@@ -1,10 +1,9 @@
 set -e
 
 # BUILD
-docker build --tag=imager-rs:latest .
+docker build --tag=imager-bins:latest .
 
 # COPY - SETUP
-# mkdir -p dist/native lib/native
 # DOCKER_CP_CODE='tar --to-stdout -C dist/native --create libimager_nodejs.linux.node libimager_nodejs.linux.node.sha1'
 
 # COPY TO DIST & LIB

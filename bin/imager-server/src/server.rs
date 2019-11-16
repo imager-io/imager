@@ -15,12 +15,12 @@ use actix_web::{
 };
 use actix_web::http::StatusCode;
 use serde::{Serialize, Deserialize};
-use crate::data::{
+use imager::data::{
     Resolution,
     OutputFormat,
     OutputSize,
 };
-use crate::opt;
+use imager::opt;
 
 
 ///////////////////////////////////////////////////////////////////////////////
