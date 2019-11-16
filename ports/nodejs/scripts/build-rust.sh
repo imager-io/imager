@@ -14,9 +14,9 @@ mkdir -p dist/native
 
 # COPY
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
-    cp ../../target/release/libimager_nodejs.so dist/native/libimager_nodejs.linux.node
+    cp target/release/libimager_nodejs.so dist/native/libimager_nodejs.linux.node
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-    cp ../../target/release/libimager_nodejs.dylib dist/native/libimager_nodejs.apple.node
+    cp target/release/libimager_nodejs.dylib dist/native/libimager_nodejs.apple.node
 elif [[ "$OSTYPE" == "cygwin" ]]; then
     echo "Windows not yet supported."
     exit 1
