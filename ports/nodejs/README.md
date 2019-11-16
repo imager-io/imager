@@ -139,7 +139,7 @@ Note that long term wise I’d like to remove cargo from the installation pictur
 
 ## [CLI Interface - docs/imager-opt.md](https://github.com/imager-io/imager/blob/master/docs/imager-opt.md)
 ## [Server Interface - docs/imager-server.md](https://github.com/imager-io/imager/blob/master/docs/imager-server.md)
-
+## [NodeJS API - docs/imager-nodejs.md](https://github.com/imager-io/imager/blob/master/docs/imager-nodejs.md)
 
 
 # Examples
