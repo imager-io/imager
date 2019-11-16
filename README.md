@@ -83,7 +83,7 @@ Just use the GitHub issue tracker for this project.
 ## Bugs, Confusion, Performance Issues
 Just use the GitHub issue form.
 
-Regarding performance, Imager may be ‘slower’ but it shouldn’t be ‘too slow’. Kindly open a new issue if such is the case for you.
+Regarding performance, Imager may be ‘slower’ but it shouldn’t be ‘too slow’. Kindly open a new issue if the latter is the case for you.
 
 ## Other Miscellaneous
 
