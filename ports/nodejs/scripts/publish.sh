@@ -20,3 +20,4 @@ test -f lib/native/libimager_nodejs.apple.node || (echo "FAILED!"; exit 1)
 npm test
 
 # PUBLISH
+npm publish
