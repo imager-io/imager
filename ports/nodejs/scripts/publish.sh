@@ -1,6 +1,15 @@
 # NOTE: Assumes the host is a mac.
 set -e
 
+# CHECK COMMIT
+GIT_RESULT=$(git status --porcelain)
+if [[ "$GIT_RESULT" != "" ]]
+then
+    echo "changed files needing to be committed"
+    exit 1
+fi
+
+
 # BUILD LINUX
 ./scripts/docker/build.sh
 
