@@ -93,4 +93,30 @@ ImageBuffer
     .then(buffer => buffer.save("path/to/output/image.jpeg"));
 ```
 
+# [Some Other Example](https://github.com/imager-io/imager-nodejs-example)
+```javascript
+const {ImageBuffer} = require("imager-io");
+
+function optimize(from, to, resize_opt) {
+    return ImageBuffer
+        .open(from)
+        .then(buffer => buffer.opt(resize_opt))
+        .then(buffer => buffer.save(to))
+        .then(() => {
+            console.log("[done]", from, "->", to);
+        });
+}
+
+
+// This showcases loading, resizing, and optimizing the given images.
+function run_me() {
+    return Promise.all([
+        optimize("samples/hi-0.jpeg", "output/hi-0.jpeg", "1600x1600"),
+        optimize("samples/hi-1.jpeg", "output/hi-1.jpeg", "1600x1600"),
+        optimize("samples/hi-2.jpeg", "output/hi-2.jpeg", "1600x1600"),
+    ]);
+}
+
+run_me();
+```
 
