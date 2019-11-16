@@ -58,10 +58,10 @@ I’m considering `WebP` for the next supported codec.
 
 ### Supported Languages
 
-| Name | Status | Links |
-| ------ | -------- | -------- |
-| Rust   | ✅ [GOOD] | [crates](https://crates.io/crates/imager) |
-| NodeJS   | ✅ [GOOD] | [npm](https://www.npmjs.com/package/imager-io) - [example](https://github.com/imager-io/imager-nodejs-example) |
+| Name | Status | Links | Self Contained (i.e. no sys deps) |
+| ------ | -------- | -------- | -------- |
+| Rust   | ✅ [GOOD] | [crates](https://crates.io/crates/imager) | NO |
+| NodeJS   | ✅ [GOOD] | [npm](https://www.npmjs.com/package/imager-io) - [example](https://github.com/imager-io/imager-nodejs-example) | YES |
 
 ### Supported Dev Tools
 
