@@ -77,20 +77,15 @@ Nothing short of becoming *the industry standard* for image optimization! :)
 
 More concretely. Expose a uniform interface for image transcoding and optimization of popular codecs. Based on off-the-shelf encoders, akin to FFmpeg. With support predominately concerned with lossy codecs.
 
-## More to come
-Stay tuned for future updates. Currently in the works is an http server, and support for other image formats.
-
 ## Feedback & Feature Requests
 Just use the GitHub issue tracker for this project.
 
 ## Bugs, Confusion, Performance Issues
 Just use the GitHub issue form.
 
-Regarding performance, Imager may be ‘slower’ but it shouldn’t be ‘too slow’, kindly open a new issue if such is the case for you.
-
 ## Other Miscellaneous
 
-## Articles
+### Articles
 
 * [Modern Image Optimization for 2020 - Issues, Solutions, and Open Source Solutions](https://medium.com/@colbyn/modern-image-optimization-for-2020-issues-solutions-and-open-source-solutions-543af00e3e51)
 
