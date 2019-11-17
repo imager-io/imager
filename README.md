@@ -71,6 +71,9 @@ For now, support will pretty much just correspond to whats popularly available i
 | `imager-cli` or `imager` | ✅ [GOOD] | The Imager CLI Interface    |
 | `imager-server`   	   | ✅ [GOOD] | The Imager Server Interface |
 
+### [Download & Install](https://github.com/imager-io/imager/releases)
+
+Prebuilt binaries can be found [here](https://github.com/imager-io/imager/releases).
 
 ## Objective
 Nothing short of becoming *the industry standard* for image optimization! :)
