@@ -11,10 +11,14 @@ RUN apt-get -y update && \
 # PROJECT DEPENDENCIES - CORE
 RUN apt-get install -y llvm-dev libclang-dev clang
 
+# SETUP
+WORKDIR /code/
+
+# PROJECT - SPECIAL
+ADD .cargo .cargo
+
 # PROJECT DEPENDENCIES
-WORKDIR /code/
 RUN apt-get install -y openssl pkg-config libssl-dev && apt-get clean
-WORKDIR /code/
 RUN mkdir -p src
 RUN echo '' > ./src/lib.rs
 ADD ./Cargo.toml .
