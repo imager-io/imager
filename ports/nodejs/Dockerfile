@@ -23,7 +23,6 @@ RUN mkdir -p src
 RUN echo '' > ./src/lib.rs
 ADD ./Cargo.toml .
 RUN cargo build --release
-RUN cargo test
 
 # PROJECT ASSETS
 ADD ./assets/test ./assets/test
@@ -33,7 +32,6 @@ RUN rm ./target/release/deps/libimager_nodejs* && \
     rm ./target/release/deps/imager_nodejs* && \
     rm ./target/release/libimager_nodejs*
 ADD ./src/ ./src/
-RUN cargo test
 RUN cargo build --release
 RUN mkdir -p dist/native && \
     cp target/release/libimager_nodejs.so dist/native/libimager_nodejs.linux.node
