@@ -66,7 +66,7 @@ For now, support will pretty much just correspond to whats popularly available i
 
 #### Webpack
 
-It’s possible, and pretty easy to use Webpack and Imager already, [here is an example](https://github.com/imager-io/webpack-imager-example-vanilla).
+It’s possible and pretty easy to use Webpack and Imager already, [here is an example](https://github.com/imager-io/webpack-imager-example-vanilla).
 
 ### Supported Bins
 
