@@ -40,6 +40,9 @@ pub use napi_sys_dev::{
     napi_open_callback_scope,
     napi_close_callback_scope,
     napi_create_threadsafe_function,
+    napi_is_buffer,
+    napi_get_buffer_info,
+    napi_create_buffer_copy,
 };
 
 

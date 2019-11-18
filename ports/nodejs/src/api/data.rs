@@ -12,9 +12,9 @@ use crate::napi::utils::*;
 use crate::napi::sys::*;
 
 #[repr(C)]
-pub struct Buffer(Rc<Vec<u8>>);
+pub struct U8Vec(Rc<Vec<u8>>);
 
-impl Buffer {
+impl U8Vec {
     pub fn as_vec_ref(&self) -> &Vec<u8> {
         use std::borrow::Borrow;
         self.0.borrow()
@@ -22,17 +22,17 @@ impl Buffer {
     pub fn new(env: NapiEnv, xs: Vec<u8>) -> Self {
         let size = xs.len();
         assert!(adjust_external_memory(env, size).is_ok());
-        Buffer(Rc::new(xs))
+        U8Vec(Rc::new(xs))
     }
     pub fn to_napi_value(self, env: NapiEnv) -> NapiValue {
         let go = || -> Result<NapiValue, String> {
             let js_ptr = to_external(env, self);
             let mut output = JsObject::new(env)?;
             output.insert_raw(env, "ptr", js_ptr)?;
-            output.insert(env, "type", "Buffer")?;
+            output.insert(env, "type", "U8Vec")?;
             Ok(output.into_raw())
         };
-        go().expect("Buffer to js ptr failed")
+        go().expect("U8Vec to js ptr failed")
     }
     pub fn from_napi_value(env: NapiEnv, value: NapiValue) -> Result<Self, String> {
         if value.is_null() {
@@ -44,11 +44,11 @@ impl Buffer {
             return Err(String::from("value is null"));
         }
         let type_value = object.get::<_, String>(env, "type")?;
-        if &type_value != "Buffer" {
-            return Err(format!("expecting 'Buffer'; given: '{}'", type_value));
+        if &type_value != "U8Vec" {
+            return Err(format!("expecting 'U8Vec'; given: '{}'", type_value));
         }
         from_external::<Self>(env, js_ptr)
-            .map(|x| Buffer(x.0.clone()))
+            .map(|x| U8Vec(x.0.clone()))
     }
 }
 

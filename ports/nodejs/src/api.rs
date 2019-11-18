@@ -15,7 +15,7 @@ use libc::size_t;
 use crate::napi::utils::*;
 use crate::napi::sys::*;
 use crate::offload_work;
-use crate::api::data::*;
+use crate::api::data::U8Vec;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,10 +42,10 @@ pub fn version(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// BUFFER CONSTRUCTION
+// VECTOR CONSTRUCTION
 ///////////////////////////////////////////////////////////////////////////////
 
-pub fn buffer_open(
+pub fn u8vec_open(
     env: NapiEnv,
     path: NapiValue
 ) -> Result<NapiValue, String> {
@@ -56,10 +56,40 @@ pub fn buffer_open(
         std::fs::read(path).map_err(|x| format!("{}", x))
     }
     fn finalize(env: NapiEnv, out: Output) -> Result<NapiValue, NapiValue> {
-        out .map(|x| Buffer::new(env, x).to_napi_value(env))
+        out .map(|x| U8Vec::new(env, x).to_napi_value(env))
             .map_err(|x| to_napi_value(env, x))
     }
     offload_work!(env, input, Input, Output, compute, finalize)
+}
+
+pub fn u8vec_from_buffer(
+    env: NapiEnv,
+    buffer: NapiValue,
+) -> Result<NapiValue, String> {
+    // INIT - JS PROMISE
+    let mut deferred: NapiDeferred = std::ptr::null_mut();
+    let mut promise: NapiValue = std::ptr::null_mut();
+    unsafe {
+        let status = napi_create_promise(
+            env,
+            &mut deferred,
+            &mut promise,
+        );
+        if status != NAPI_OK {
+            return Err(String::from("napi_create_promise failed"));
+        }
+    };
+    // RESOLVE
+    let data = from_buffer(env, buffer)?;
+    let js_value = U8Vec::new(env, data).to_napi_value(env);
+    let status = unsafe {
+        napi_resolve_deferred(env, deferred, js_value)
+    };
+    if status != NAPI_OK {
+        eprintln!("napi_resolve_deferred failed!");
+    }
+    // DONE
+    Ok(promise)
 }
 
 
@@ -67,15 +97,15 @@ pub fn buffer_open(
 // BUFFER METHODS
 ///////////////////////////////////////////////////////////////////////////////
 
-pub fn buffer_save(
+pub fn u8vec_save(
     env: NapiEnv,
     buffer: NapiValue,
     path: NapiValue,
 ) -> Result<NapiValue, String> {
-    type Input = (Buffer, String);
+    type Input = (U8Vec, String);
     type Output = Result<(), String>;
     let input: Input = (
-        Buffer::from_napi_value(env, buffer)?,
+        U8Vec::from_napi_value(env, buffer)?,
         from_napi_value::<String>(env, path)?,
     );
     fn compute(payload: Input) -> Output {
@@ -92,15 +122,46 @@ pub fn buffer_save(
     offload_work!(env, input, Input, Output, compute, finalize)
 }
 
-pub fn buffer_opt(
+pub fn u8vec_to_buffer(
+    env: NapiEnv,
+    buffer: NapiValue,
+) -> Result<NapiValue, String> {
+    // INIT - JS PROMISE
+    let mut deferred: NapiDeferred = std::ptr::null_mut();
+    let mut promise: NapiValue = std::ptr::null_mut();
+    unsafe {
+        let status = napi_create_promise(
+            env,
+            &mut deferred,
+            &mut promise,
+        );
+        if status != NAPI_OK {
+            return Err(String::from("napi_create_promise failed"));
+        }
+    };
+    // CONVERT
+    let buffer: U8Vec = U8Vec::from_napi_value(env, buffer)?;
+    let js_value = to_buffer(env, buffer.as_vec_ref())?;
+    // RESOLVE
+    let status = unsafe {
+        napi_resolve_deferred(env, deferred, js_value)
+    };
+    if status != NAPI_OK {
+        eprintln!("napi_resolve_deferred failed!");
+    }
+    // DONE
+    Ok(promise)
+}
+
+pub fn u8vec_opt(
     env: NapiEnv,
     image: NapiValue,
     resize: NapiValue,
 ) -> Result<NapiValue, String> {
-    type Input = (Buffer, imager::api::OutputSize);
+    type Input = (U8Vec, imager::api::OutputSize);
     type Output = Result<Vec<u8>, String>;
     let input: Input = (
-        Buffer::from_napi_value(env, image)?,
+        U8Vec::from_napi_value(env, image)?,
         from_napi_value::<imager::api::OutputSize>(env, resize)?,
     );
     fn compute(payload: Input) -> Output {
@@ -108,7 +169,7 @@ pub fn buffer_opt(
         imager::api::opt(input_image.as_vec_ref(), resize)
     }
     fn finalize(env: NapiEnv, out: Output) -> Result<NapiValue, NapiValue> {
-        out .map(|x| Buffer::new(env, x).to_napi_value(env))
+        out .map(|x| U8Vec::new(env, x).to_napi_value(env))
             .map_err(|x| to_napi_value(env, x))
     }
     offload_work!(env, input, Input, Output, compute, finalize)

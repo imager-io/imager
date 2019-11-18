@@ -238,6 +238,74 @@ impl JsObject {
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// NODE<->RUST BINARY INTEROPERABILITY
+///////////////////////////////////////////////////////////////////////////////
+
+pub fn from_buffer(env: NapiEnv, value: NapiValue) -> Result<Vec<u8>, String> {
+    // CHECK
+    let mut is_buffer: bool = false;
+    if get_value_type(env, value)? != NAPI_OBJECT {
+        return Err(String::from("invalid type; expecting Buffer object"));
+    }
+    unsafe {
+        if napi_is_buffer(env, value, &mut is_buffer) != NAPI_OK {
+            return Err(String::from("napi_is_buffer failed"));
+        }
+    };
+    if !is_buffer {
+        return Err(String::from("invalid type; expecting Buffer object"));
+    }
+    // GET DATA
+    let mut js_ptr: *mut libc::c_void = std::ptr::null_mut();
+    let mut js_ptr_len: size_t = unsafe {
+        std::mem::zeroed()
+    };
+    unsafe {
+        let s = napi_get_buffer_info(
+            env,
+            value,
+            &mut js_ptr,
+            &mut js_ptr_len,
+        );
+        if s != NAPI_OK {
+            return Err(String::from("napi_get_buffer_info failed"));
+        }
+    };
+    if js_ptr.is_null() {
+        return Err(String::from("napi_get_buffer_info failed (ptr is NULL)"));
+    }
+    // COPY
+    let mut data = Vec::<u8>::with_capacity(js_ptr_len as usize);
+    unsafe {
+        data.set_len(js_ptr_len as usize);
+    };
+    unsafe {
+        let js_ptr = js_ptr as *mut u8;
+        std::ptr::copy(js_ptr, data.as_mut_ptr(), js_ptr_len as usize);
+    };
+    // DONE
+    Ok(data)
+}
+
+pub fn to_buffer(env: NapiEnv, value: &Vec<u8>) -> Result<NapiValue, String> {
+    let mut js_value: NapiValue = std::ptr::null_mut();
+    unsafe {
+        let s = napi_create_buffer_copy(
+            env,
+            value.len() as size_t,
+            value.as_ptr() as *const libc::c_void,
+            &mut std::ptr::null_mut(),
+            &mut js_value
+        );
+        if s != NAPI_OK {
+            return Err(String::from("napi_create_buffer_copy failed"));
+        }
+    };
+    Ok(js_value)
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
 // MISC
 ///////////////////////////////////////////////////////////////////////////////
 

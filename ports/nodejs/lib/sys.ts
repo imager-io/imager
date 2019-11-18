@@ -30,32 +30,39 @@ const imager_native = function(){
  * 
  * Lower level interface - Consider this type private.
  */
-export interface Buffer {
-    readonly type: "Buffer",
+export interface U8Vec {
+    readonly type: "U8Vec",
     readonly ptr: any,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// BUFFER CONSTRUCTION
+// U8VEC CONSTRUCTION
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
  * Lower level interface - Consider this function private.
  */
-export function buffer_open(path: String): Promise<Buffer> {
-    return imager_native.buffer_open(path);
+export function u8vec_open(path: String): Promise<U8Vec> {
+    return imager_native.u8vec_open(path);
+}
+
+/**
+ * Lower level interface - Consider this function private.
+ */
+export function u8vec_from_buffer(value: Buffer): Promise<U8Vec> {
+    return imager_native.u8vec_from_buffer(value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// BUFFER METHODS
+// U8VEC METHODS
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
  * Lower level interface: consider this function private.
  */
-export async function buffer_save(buffer: Buffer, path: String): Promise<void> {
+export async function u8vec_save(buffer: U8Vec, path: String): Promise<void> {
     return imager_native
-        .buffer_save(buffer, path)
+        .u8vec_save(buffer, path)
         .then((x: any) => {
             return;
         });
@@ -64,13 +71,19 @@ export async function buffer_save(buffer: Buffer, path: String): Promise<void> {
 /**
  * Lower level interface: consider this function private.
  */
-export async function buffer_opt(buffer: Buffer, args?: data.OptArgs | string): Promise<Buffer> {
+export async function u8vec_to_buffer(data: U8Vec): Promise<Buffer> {
+    return imager_native.u8vec_to_buffer(data);
+}
+
+/**
+ * Lower level interface: consider this function private.
+ */
+export async function u8vec_opt(buffer: U8Vec, args?: data.OptArgs | string): Promise<U8Vec> {
     let size: string = "full";
     if (args && typeof(args) === 'string') {
         size = args;
     } else if (args && typeof(args) !== 'string' && args.size) {
         size = args.size;
     }
-    return imager_native.buffer_opt(buffer, size);
+    return imager_native.u8vec_opt(buffer, size);
 }
-
