@@ -10,6 +10,8 @@ This is a tool that can competitively optimize (e.g.) extremely noisy, high reso
 
 ```text
 source        : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 39.00M (4 images)
+kraken.io     : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 24M
+jpegmini.com  : ▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇▇ 16M
 compression.ai: ▇▇▇▇▇▇▇▇ 8.90M
 imager        : ▇▇▇▇ 4.20M
 ```
