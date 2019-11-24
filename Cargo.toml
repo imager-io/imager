@@ -6,7 +6,7 @@ edition = "2018"
 license = "MPL-2.0"
 repository = "https://github.com/colbyn/imager"
 homepage = "https://github.com/colbyn/imager"
-description = "Brute force image optimization."
+description = "Core logic [being] factored out of imager."
 keywords = ["image", "optimization", "compression"]
 
 [dependencies]
