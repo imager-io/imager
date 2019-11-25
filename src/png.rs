@@ -19,7 +19,7 @@ pub fn compress() {
     let output_path = "assets/output/code.png";
     let img = load_img(input_path).expect("load input png");
     let ditherer: Box<dyn ditherer::Ditherer> = Box::new(ditherer::None);
-    let num_colors: usize = 200;
+    let num_colors: usize = 15;
     let (optimizer, opt_level): (Box<dyn Optimizer>, u32) = (Box::new(optimizer::WeightedKMeans), 3);
     let histogram = img
         .buffer
