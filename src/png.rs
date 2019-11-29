@@ -1,5 +1,4 @@
-use std::io::Read;
-use std::io::Write;
+use std::io::{Read, Write, BufWriter};
 use std::process::exit;
 use std::iter::FromIterator;
 use std::iter::Extend;
@@ -156,6 +155,16 @@ pub fn compress_ref(num_colors: usize) {
             panic!("Error: Failed to write PNG '{}'.", output_path);
         }
     };
+}
+
+pub fn encode(width: u32, height: u32, data: Vec<u8>) -> Vec<u8> {
+    let writer = Vec::<u8>::new();
+    let mut encoder = ::png::Encoder::new(writer, width, height);
+    encoder.set_depth(::png::BitDepth::Eight);
+    encoder.set_compression(png::Compression::Best);
+    encoder.set_filter(png::FilterType::Paeth);
+    encoder.set_color(::png::ColorType::RGB);
+    unimplemented!()
 }
 
 pub fn run() {
