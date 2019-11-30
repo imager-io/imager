@@ -19,9 +19,8 @@ pub enum ImageMode {
     Text,
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
-// FUNCTIONS
+// ENCODER
 ///////////////////////////////////////////////////////////////////////////////
 
 fn encode_indexed(palette: &[Color], image: &[u8], width: u32, height: u32) -> Vec<u8> {
@@ -108,6 +107,16 @@ pub fn compress(source: &DynamicImage, mode: ImageMode, num_colors: usize) -> Re
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// DECODER HELPERS
+///////////////////////////////////////////////////////////////////////////////
+
+pub fn decode_to_yuv420p(data: &Vec<u8>) {
+    let data = ::image::load_from_memory_with_format(data, ::image::ImageFormat::PNG)
+        .expect("decode/load image as png");
+    unimplemented!()
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // DEV
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -122,4 +131,5 @@ pub fn run() {
     let num_colors = 6;
     let out = compress(&img, mode, num_colors).expect("compress png source");
     std::fs::write("assets/output/test.png", &out);
+    // decode_to_yuv420p(&data);
 }
