@@ -139,15 +139,6 @@ pub fn run() {
     let output_path = "assets/output/test.png";
     // LOAD & DECODE
     let img = ::image::open(input_path).expect("load input png");
-    // RUN
-    // let mode = ImageMode::Text;
-    // let num_colors = 10;
-    // let out = compress(&img, mode, num_colors).expect("compress png source");
     let out = basic_optimize(&img);
     std::fs::write(output_path, &out);
-    // // VMAF REPORT
-    // let source1 = Yuv420pImage::from_image(&img);
-    // let source2 = Yuv420pImage::from_png_image(&out);
-    // let report = crate::vmaf::report(&source1, &source2);
-    // println!("vmaf: {}", report);
 }
