@@ -10,6 +10,9 @@ use lodepng::Bitmap;
 use lodepng::RGBA;
 use image::{DynamicImage, GenericImage, GenericImageView};
 
+use crate::vmaf::Yuv420pImage;
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // DATA TYPES
 ///////////////////////////////////////////////////////////////////////////////
@@ -106,15 +109,6 @@ pub fn compress(source: &DynamicImage, mode: ImageMode, num_colors: usize) -> Re
     Ok(out_file)
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// DECODER HELPERS
-///////////////////////////////////////////////////////////////////////////////
-
-pub fn decode_to_yuv420p(data: &Vec<u8>) {
-    let data = ::image::load_from_memory_with_format(data, ::image::ImageFormat::PNG)
-        .expect("decode/load image as png");
-    unimplemented!()
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // DEV
@@ -131,5 +125,9 @@ pub fn run() {
     let num_colors = 6;
     let out = compress(&img, mode, num_colors).expect("compress png source");
     std::fs::write("assets/output/test.png", &out);
-    // decode_to_yuv420p(&data);
+    // VMAF REPORT
+    let source1 = Yuv420pImage::from_image(&img);
+    let source2 = Yuv420pImage::from_png_image(&out);
+    let report = crate::vmaf::report(&source1, &source2);
+    println!("vmaf: {}", report);
 }

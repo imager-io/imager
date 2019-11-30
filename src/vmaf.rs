@@ -23,6 +23,31 @@ pub struct Yuv420pImage {
     pub buffer: Vec<u8>,
 }
 
+impl Yuv420pImage {
+    pub fn from_png_image(data: &Vec<u8>) -> Self {
+        use image::{DynamicImage, GenericImage, GenericImageView};
+        let data = ::image::load_from_memory_with_format(data, ::image::ImageFormat::PNG).expect("load png image");
+        Yuv420pImage::from_image(&data)
+    }
+    pub fn from_image(data: &::image::DynamicImage) -> Self {
+        use image::{DynamicImage, GenericImage, GenericImageView};
+        let (width, height) = data.dimensions();
+        let rgb = data
+            .to_rgb()
+            .pixels()
+            .map(|x| x.0.to_vec())
+            .flatten()
+            .collect::<Vec<_>>();
+        let yuv = rgb2yuv420::convert_rgb_to_yuv420p(&rgb, width, height, 1);
+        Yuv420pImage {
+            width,
+            height,
+            linesize: width,
+            buffer: yuv,
+        }
+    }
+}
+
 
 #[repr(C)]
 struct VmafReportContext {
