@@ -143,7 +143,7 @@ pub fn run() {
     // let mode = ImageMode::Text;
     // let num_colors = 10;
     // let out = compress(&img, mode, num_colors).expect("compress png source");
-    let out = optimize(&img);
+    let out = basic_optimize(&img);
     std::fs::write(output_path, &out);
     // // VMAF REPORT
     // let source1 = Yuv420pImage::from_image(&img);
