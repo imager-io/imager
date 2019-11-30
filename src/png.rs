@@ -73,18 +73,8 @@ pub fn compress(source: &DynamicImage, mode: ImageMode, num_colors: usize) -> Re
         .map(|(_, _, px)| Color::new(px.0[0], px.0[1], px.0[2], px.0[3]))
         .collect::<Vec<Color>>();
     let histogram = Histogram::from_iter(input_pixels.clone());
+    let dev = false;
     let colorspace = SimpleColorSpace::default();
-    let colorspace = SimpleColorSpace {
-        gamma: 0.85,
-        dither_gamma: 2.2,
-        transparency_scale: 0.01,
-        scale: Colorf {
-            r: 0.6,
-            g: 0.6,
-            b: 0.6,
-            a: 0.5,
-        },
-    };
     let mut quantizer = Quantizer::new(&histogram, &colorspace);
     for _ in 0..num_colors {
         quantizer.step();
@@ -109,6 +99,35 @@ pub fn compress(source: &DynamicImage, mode: ImageMode, num_colors: usize) -> Re
     Ok(out_file)
 }
 
+pub fn basic_optimize(source: &DynamicImage) -> Vec<u8> {
+    let run = |num_colors: usize| {
+        let mode = ImageMode::Text;
+        let compressed = compress(&source, mode, num_colors).expect("compress png source");
+        let report = {
+            let source = Yuv420pImage::from_image(&source);
+            let derivative = Yuv420pImage::from_png_image(&compressed);
+            crate::vmaf::report(&source, &derivative)
+        };
+        println!("vmaf: {}", report);
+        (compressed, report)
+    };
+    let fallback = || {
+        let num_colors = 255;
+        let mode = ImageMode::Text;
+        compress(&source, mode, num_colors).expect("compress png source")
+    };
+    // RUN
+    for num_colors in 1..256 {
+        println!("num_colors: {}", num_colors);
+        let (compressed, report) = run(num_colors);
+        if report >= 90.0 || num_colors <= 5 {
+            return compressed;
+        }
+    }
+    // OR RUN FALLBACK
+    fallback()
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // DEV
@@ -117,17 +136,18 @@ pub fn compress(source: &DynamicImage, mode: ImageMode, num_colors: usize) -> Re
 pub fn run() {
     // DEV
     let input_path = "assets/samples/code.png";
-    let output_path = "assets/output/main.png";
+    let output_path = "assets/output/test.png";
     // LOAD & DECODE
     let img = ::image::open(input_path).expect("load input png");
     // RUN
-    let mode = ImageMode::Text;
-    let num_colors = 6;
-    let out = compress(&img, mode, num_colors).expect("compress png source");
-    std::fs::write("assets/output/test.png", &out);
-    // VMAF REPORT
-    let source1 = Yuv420pImage::from_image(&img);
-    let source2 = Yuv420pImage::from_png_image(&out);
-    let report = crate::vmaf::report(&source1, &source2);
-    println!("vmaf: {}", report);
+    // let mode = ImageMode::Text;
+    // let num_colors = 10;
+    // let out = compress(&img, mode, num_colors).expect("compress png source");
+    let out = optimize(&img);
+    std::fs::write(output_path, &out);
+    // // VMAF REPORT
+    // let source1 = Yuv420pImage::from_image(&img);
+    // let source2 = Yuv420pImage::from_png_image(&out);
+    // let report = crate::vmaf::report(&source1, &source2);
+    // println!("vmaf: {}", report);
 }
