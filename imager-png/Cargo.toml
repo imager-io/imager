@@ -8,6 +8,7 @@ repository = "https://github.com/colbyn/imager"
 homepage = "https://github.com/colbyn/imager"
 description = "Brute force image optimization."
 keywords = ["image", "optimization", "compression"]
+exclude = ["assets"]
 publish = false
 
 [dependencies]
