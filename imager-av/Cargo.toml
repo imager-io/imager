@@ -8,6 +8,7 @@ repository = "https://github.com/imager-io/imager-core"
 homepage = "https://github.com/imager-io/imager-core"
 description = "Common stuff used by other Imager components."
 keywords = ["image"]
+exclude = ["assets"]
 
 [dependencies]
 libc = "^0.2"
