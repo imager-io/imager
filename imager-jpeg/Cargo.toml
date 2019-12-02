@@ -9,6 +9,7 @@ homepage = "https://github.com/imager-io/imager-core"
 description = "Imager - JPEG support."
 keywords = ["image"]
 exclude = ["assets"]
+publish = false
 
 [dependencies]
 libc = "^0.2"
