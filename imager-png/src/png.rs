@@ -9,8 +9,7 @@ use exoquant::*;
 use lodepng::Bitmap;
 use lodepng::RGBA;
 use image::{DynamicImage, GenericImage, GenericImageView};
-
-use crate::vmaf::Yuv420pImage;
+use imager_av::vmaf::{self, Yuv420pImage};
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -105,8 +104,11 @@ pub fn basic_optimize(source: &DynamicImage) -> Vec<u8> {
         let compressed = compress(&source, mode, num_colors).expect("compress png source");
         let report = {
             let source = Yuv420pImage::from_image(&source);
-            let derivative = Yuv420pImage::from_png_image(&compressed);
-            crate::vmaf::report(&source, &derivative)
+            let derivative = Yuv420pImage::decode_with_format(
+                &compressed,
+                ::image::ImageFormat::PNG,
+            );
+            vmaf::report(&source, &derivative)
         };
         println!("vmaf: {}", report);
         (compressed, report)
