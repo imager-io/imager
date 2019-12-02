@@ -7,10 +7,11 @@ use serde::{Serialize, Deserialize};
 use image::{DynamicImage, GenericImage, FilterType, GenericImageView};
 use rayon::prelude::*;
 use itertools::Itertools;
-use either::{Either, Either::*};
-use crate::classifier::{self, Class};
+use imager_av::classifier::{self, Class};
+use imager_av::frontend::data::{OutputSize, Resolution};
+use imager_av::vmaf;
 use crate::jpeg::DecodedImage;
-use crate::data::{OutputSize, Resolution};
+
 
 #[derive(Clone)]
 pub struct Source {
@@ -157,19 +158,19 @@ impl Source {
         // TODO - CLEANUP
         let report = {
             let reconstructed = DecodedImage::load_from_memory(&compressed).expect("search failed - reconstructed");
-            let vmaf_derivative = crate::vmaf::Yuv420pImage {
+            let vmaf_derivative = vmaf::Yuv420pImage {
                 width: reconstructed.width.clone(),
                 height: reconstructed.height.clone(),
                 linesize: reconstructed.linesize.clone(),
                 buffer: reconstructed.buffer.clone(),
             };
-            let vmaf_source = crate::vmaf::Yuv420pImage {
+            let vmaf_source = vmaf::Yuv420pImage {
                 width: self.source.width.clone(),
                 height: self.source.height.clone(),
                 linesize: self.source.linesize.clone(),
                 buffer: self.source.buffer.clone(),
             };
-            crate::vmaf::report(&vmaf_source, &vmaf_derivative)
+            vmaf::report(&vmaf_source, &vmaf_derivative)
         };
         if self.terminate(report) {
             (compressed, true)
