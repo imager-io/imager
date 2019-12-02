@@ -1,3 +1,15 @@
+# **Update:**
+
+Everything in this mono-repo is currently being factored out into their own standalone repositories.
+
+The following links to their respective new homes:
+
+* [CLI Tools](https://github.com/imager-io/imager-tools)
+* [Low-Level Implementation](https://github.com/imager-io/imager-core)
+* [Extras](https://github.com/imager-io/imager-advanced)
+* [JavaScript Support (NodeJS)](https://github.com/imager-io/imager-io-js)
+
+
 # Imager
 > Brute force image optimization; optimizes the compression using ML based metrics in a trial ’n error sorta manner.
 
