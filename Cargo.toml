@@ -1,10 +1,6 @@
 [workspace]
 members = [
-    "imager-rs",
+    "imager-cli",
+    "imager-server"
 ]
 
-exclude = [
-    "ports/nodejs",
-    "bin/imager-cli",
-    "bin/imager-server",
-]
