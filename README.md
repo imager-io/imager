@@ -69,8 +69,6 @@ Essentially supports any image decodable by [image-rs](https://github.com/i
 | ------ | -------- |
 | JPEG   | progressive |
 
-For now, support will pretty much just correspond to whats popularly available in browsers. I’m considering `WebP` for the next supported codec.
-
 
 #### [Download & Install](https://github.com/imager-io/imager/releases)
 
