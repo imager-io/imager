@@ -9,7 +9,6 @@ publish = false
 libc = "^0.2"
 x264-dev = "0.1.1"
 vmaf-sys = "0.0.10"
-glob = "^0.3"
 image = "^0.22"
 webp-dev = "0.3.0"
 itertools = "0.8.2"

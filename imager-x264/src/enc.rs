@@ -12,6 +12,7 @@ use itertools::Itertools;
 use crate::yuv420p::Yuv420P;
 use crate::stream::{Stream, FileStream, SingleImage};
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // DATA TYPES
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,9 +34,8 @@ pub enum Mode {
 
 pub const SYSTEM_MODE: Mode = Mode::Speed;
 
-
 ///////////////////////////////////////////////////////////////////////////////
-// FUNCTIONS
+// HELPERS
 ///////////////////////////////////////////////////////////////////////////////
 
 unsafe fn new_param(width: u32, height: u32) -> sys::X264ParamT {
@@ -74,33 +74,28 @@ unsafe fn new_param(width: u32, height: u32) -> sys::X264ParamT {
     param
 }
 
-unsafe fn init_global_param(width: u32, height: u32) -> sys::X264ParamT {
-    let mut param = new_param(width, height);
-    let mut recon_path = CString::new("assets/output/dump/test.yuv").expect("CString failed");
-    param.b_full_recon = 1;
-    param.psz_dump_yuv = recon_path.as_ptr() as *mut i8;
-    std::mem::forget(recon_path);
-    param
-}
-
-unsafe fn update_picture_param(param: &mut sys::X264ParamT) {
-    
-}
 
 
-unsafe fn encode() {
-    // SOURCE
-    let source_path = "assets/samples/sintel-trailer-gop1";
-    // let source_path = "assets/samples/gop-test-single";
-    let mut stream = FileStream::new(source_path, 1920, 818);
-    let mut vmaf_source = SingleImage::new(stream.width, stream.height);
-    let mut vmaf_derivative = SingleImage::new(stream.width, stream.height);
+
+///////////////////////////////////////////////////////////////////////////////
+// LOW-LEVEL ENCODER
+///////////////////////////////////////////////////////////////////////////////
+
+pub unsafe fn encode(mut stream: impl Stream) -> Result<Vec<u8>, String> {
+    ///////////////////////////////////////////////////////////////////////////
     // SETUP
-    let (width, height) = (stream.width, stream.height);
-    let linesize = width;
+    ///////////////////////////////////////////////////////////////////////////
+    let (width, height) = stream.dimensions();
     let luma_size = width * height;
     let chroma_size = luma_size / 4;
-    let mut param = init_global_param(width, height);
+    ///////////////////////////////////////////////////////////////////////////
+    // INIT PARAM
+    ///////////////////////////////////////////////////////////////////////////
+    let mut param = new_param(width, height);
+    param.rc.i_qp_constant = 10;
+    ///////////////////////////////////////////////////////////////////////////
+    // INIT PICTURE
+    ///////////////////////////////////////////////////////////////////////////
     let mut picture_param = new_param(width, height);
     let mut picture: sys::X264PictureT = std::mem::zeroed();
     let mut picture_output: sys::X264PictureT = std::mem::zeroed();
@@ -113,6 +108,9 @@ unsafe fn encode() {
         );
         assert!(status == 0);
     };
+    ///////////////////////////////////////////////////////////////////////////
+    // ENCODER CONTEXT
+    ///////////////////////////////////////////////////////////////////////////
     let mut encoder_ctx: *mut sys::X264T = sys::x264_encoder_open(&mut param);
     assert!(!encoder_ctx.is_null());
     assert!(picture.img.i_plane == 3);
@@ -124,17 +122,16 @@ unsafe fn encode() {
     // ???
     let mut p_nal: *mut sys::X264NalT = std::ptr::null_mut();
     let mut i_nal: i32 = std::mem::zeroed();
+    ///////////////////////////////////////////////////////////////////////////
     // ENCODED OUTPUT
+    ///////////////////////////////////////////////////////////////////////////
     let mut output = Vec::<u8>::new();
+    ///////////////////////////////////////////////////////////////////////////
     // GO!
+    ///////////////////////////////////////////////////////////////////////////
     let mut frame_index = 0;
     while let Some(source) = stream.next() {
         frame_index = frame_index + 1;
-        if frame_index <= 50 {
-            picture_param.rc.f_rf_constant = 10.0;
-        } else {
-            picture_param.rc.f_rf_constant = 41.0;
-        }
         let (mut y_ptr, mut u_ptr, mut v_ptr) = unsafe {(
             std::slice::from_raw_parts_mut(picture.img.plane[0], luma_size as usize),
             std::slice::from_raw_parts_mut(picture.img.plane[1], chroma_size as usize),
@@ -159,30 +156,10 @@ unsafe fn encode() {
             );
             output.extend_from_slice(encoded);
         }
-        // RECONSTRUCT - GET DECODED DERIVATIVE
-        let report = unsafe {
-            // backup = Some(source);
-            // vmaf_source.yuv = source;
-            // vmaf_source.restart();
-            // vmaf_derivative.fill_from_yuv_file("assets/output/dump/test.yuv");
-            // vmaf_derivative.restart();
-
-            // let (mut y_ptr, mut u_ptr, mut v_ptr) = unsafe {(
-            //     std::slice::from_raw_parts_mut(picture.img.plane[0], luma_size as usize),
-            //     std::slice::from_raw_parts_mut(picture.img.plane[1], chroma_size as usize),
-            //     std::slice::from_raw_parts_mut(picture.img.plane[2], chroma_size as usize),
-            // )};
-            // vmaf_derivative.yuv.y.copy_from_slice(y_ptr);
-            // vmaf_derivative.yuv.u.copy_from_slice(u_ptr);
-            // vmaf_derivative.yuv.v.copy_from_slice(v_ptr);
-            // vmaf_derivative.restart();
-            // crate::vmaf::vmaf_controller(
-            //     Box::new(vmaf_source.clone()),
-            //     Box::new(vmaf_derivative.clone()),
-            // )
-        };
     }
+    ///////////////////////////////////////////////////////////////////////////
     // FLUSH DELAYED FRAMES
+    ///////////////////////////////////////////////////////////////////////////
     while sys::x264_encoder_delayed_frames(encoder_ctx) > 0 {
         let i_frame_size = sys::x264_encoder_encode(
             encoder_ctx,
@@ -200,20 +177,26 @@ unsafe fn encode() {
             output.extend_from_slice(encoded);
         }
     }
-
+    ///////////////////////////////////////////////////////////////////////////
     // CLEANUP
+    ///////////////////////////////////////////////////////////////////////////
     sys::x264_encoder_close(encoder_ctx);
     sys::x264_picture_clean(&mut picture);
+    ///////////////////////////////////////////////////////////////////////////
     // DONE
-    std::fs::write("assets/output/test.h264", &output);
+    ///////////////////////////////////////////////////////////////////////////
+    Ok(output)
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // DEV
 ///////////////////////////////////////////////////////////////////////////////
 
 pub fn run() {
-    unsafe {
-        encode();
-    };
+    let source_path = "assets/samples/sintel-trailer-gop1";
+    // let source_path = "assets/samples/gop-test-single";
+    let mut stream = FileStream::new(source_path, 1920, 818);
+    let output = unsafe {encode(stream).expect("encode faild")};
+    std::fs::write("assets/output/test.h264", &output);
 }
