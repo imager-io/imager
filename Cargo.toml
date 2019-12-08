@@ -3,4 +3,5 @@ members = [
     "imager-av",
     "imager-jpeg",
     "imager-png",
+    "imager-x264",
 ]
