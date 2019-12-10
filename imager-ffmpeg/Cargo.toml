@@ -5,4 +5,5 @@ authors = ["colbyn <hello@colbyn.com>"]
 edition = "2018"
 
 [dependencies]
+libc = "^0.2"
 ffmpeg-dev = "0.3.1"
