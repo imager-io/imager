@@ -5,4 +5,5 @@ members = [
     "imager-png",
     "imager-x264",
     "imager-ffmpeg",
+    "imager-webp",
 ]
