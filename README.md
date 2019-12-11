@@ -68,20 +68,6 @@ imager        : ▇▇▇▇ 4.20M
 
 Prebuilt binaries can be found [here](https://github.com/imager-io/imager/releases).
 
-## Objective
-Nothing short of becoming *the industry standard* for image optimization! :)
-
-More concretely. Expose a uniform interface for image transcoding and optimization of popular codecs. Based on off-the-shelf encoders, akin to FFmpeg. With support predominately concerned with lossy codecs.
-
-## Feedback or Related?
-Just use the GitHub issue tracker for this project.
-
-## Other Miscellaneous
-
-### Articles
-
-* [Modern Image Optimization for 2020 - Issues, Solutions, and Open Source Solutions](https://medium.com/@colbyn/modern-image-optimization-for-2020-issues-solutions-and-open-source-solutions-543af00e3e51)
-
 # Imager - early to mid **2020**
 
 Lots of stuff under development, including support for a multitude of image formats. Potentially with experimental support for video!
