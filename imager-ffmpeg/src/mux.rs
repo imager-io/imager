@@ -8,11 +8,23 @@ use std::os::raw::{c_char, c_int};
 use libc::{size_t, c_float, c_void};
 use ffmpeg_dev::sys::{
     self,
+    AVDictionary,
+    AVCodec,
+    AVCodecContext,
     AVStream,
     AVPacket,
     AVFormatContext,
     AVOutputFormat,
     AVCodecParameters,
+    av_write_frame,
+    av_guess_format,
+    avformat_init_output,
+    av_guess_frame_rate,
+    av_packet_rescale_ts,
+    avcodec_alloc_context3,
+    avcodec_open2,
+    avcodec_find_encoder,
+    av_dict_set,
     avformat_open_input,
     avformat_find_stream_info,
     av_dump_format,
@@ -44,20 +56,25 @@ use ffmpeg_dev::sys::{
     AVIO_FLAG_WRITE,
     AVRounding_AV_ROUND_NEAR_INF as AV_ROUND_NEAR_INF,
     AVRounding_AV_ROUND_PASS_MINMAX as AV_ROUND_PASS_MINMAX,
+    AVCodecID_AV_CODEC_ID_H264 as AV_CODEC_ID_H264,
 };
 
 
-unsafe fn process() {
+fn c_str(s: &str) -> CString {
+    CString::new(s).expect("str to c str")
+}
+
+unsafe fn remux() {
     // I/O
+    // let input_path = "assets/samples/test.h264";
     let input_path = "assets/samples/sintel_trailer.1080p.mp4";
-    let output_path = "assets/output/test.gif";
+    let output_path = "assets/output/test.mp4";
     assert!(PathBuf::from(input_path).exists());
     let input_path_cstr = CString::new(input_path).expect("to c str");
     let output_path_cstr = CString::new(output_path).expect("to c str");
     // SETUP AV CONTEXT
     let mut ifmt_ctx: *mut AVFormatContext = std::ptr::null_mut();
     let mut ofmt_ctx: *mut AVFormatContext = std::ptr::null_mut();
-    let mut ofmt: *mut AVOutputFormat = std::ptr::null_mut();
     let mut pkt: AVPacket = std::mem::zeroed();
     // OPEN SOURCE
     assert_eq!(
@@ -77,21 +94,20 @@ unsafe fn process() {
         0,
     );
     // OUTPUT CONTEXT
-    let s = avformat_alloc_output_context2(
+    assert!(avformat_alloc_output_context2(
         &mut ofmt_ctx,
         std::ptr::null_mut(),
         std::ptr::null_mut(),
         input_path_cstr.as_ptr(),
-    );
-    assert!(s >= 0);
+    ) >= 0);
+    // OUTPUT META
+    let mut ofmt: *mut AVOutputFormat = (*ofmt_ctx).oformat;
 
     // STREAM TRACKER
     let mut stream_mapping_size: u32 = (*ifmt_ctx).nb_streams;
     let mut stream_mapping: Vec<i32> = vec![0; stream_mapping_size as usize];
 
-    ofmt = (*ofmt_ctx).oformat;
-
-    // TRAVERSE SOURCE STREAMS
+    // SOURCE TO DEST STREAMS
     let input_streams = {
         let len = (*ifmt_ctx).nb_streams as usize;
         std::slice::from_raw_parts((*ifmt_ctx).streams, len)
@@ -105,14 +121,8 @@ unsafe fn process() {
         let skip = {
             (*in_stream.codecpar).codec_type != AVMEDIA_TYPE_VIDEO
         };
-        // let skip = {
-        //     (*in_stream.codecpar).codec_type != AVMEDIA_TYPE_AUDIO &&
-        //     (*in_stream.codecpar).codec_type != AVMEDIA_TYPE_VIDEO &&
-        //     (*in_stream.codecpar).codec_type != AVMEDIA_TYPE_SUBTITLE
-        // };
         if skip {
             stream_mapping[index] = -1;
-            // continue;
         } else {
             out_stream = avformat_new_stream(ofmt_ctx, std::ptr::null());
             assert!(!out_stream.is_null());
@@ -179,7 +189,14 @@ unsafe fn process() {
         );
         pkt.pos = -1;
         // WRITE
+        
+        // RESCALE OUTPUT PACKET TIMESTAMP VALUES FROM CODEC TO STREAM TIMEBASE
+        // av_packet_rescale_ts(pkt, *time_base, st->time_base);
+        // pkt->stream_index = st->index;
+        
+        // WRITE THE COMPRESSED FRAME TO THE MEDIA FILE
         assert!(av_interleaved_write_frame(ofmt_ctx, &mut pkt) >= 0);
+        // assert!(av_write_frame(ofmt_ctx, &mut pkt) >= 0);
         av_packet_unref(&mut pkt);
     }
 
@@ -197,6 +214,6 @@ unsafe fn process() {
 
 pub fn run() {
     unsafe {
-        process();
+        remux();
     };
 }
