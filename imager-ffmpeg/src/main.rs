@@ -1,8 +1,8 @@
 #![allow(unused)]
 pub mod mux;
-pub mod av;
+pub mod dec;
+pub mod demux;
 
 fn main() {
-    // mux::run();
-    av::run();
+    dec::run();
 }

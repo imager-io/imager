@@ -42,27 +42,24 @@ fn c_str(s: &str) -> CString {
     CString::new(s).expect("str to c str")
 }
 
-
-// static void pgm_save(unsigned char *buf, int wrap, int xsize, int ysize,
-//     char *filename)
-// {
-//     FILE *f;
-//     int i;
-
-//     f = fopen(filename,"w");
-//     fprintf(f, "P5\n%d %d\n%d\n", xsize, ysize, 255);
-//     for (i = 0; i < ysize; i++)
-//          fwrite(buf + i * wrap, 1, xsize, f);
-//     fclose(f);
-// }
-
 pub struct RawYuv420p {
-    width: u32,
-    height: u32,
-    bufsize: i32,
-    linesize: [i32; 4],
-    data: [*mut u8; 4],
+    pub width: u32,
+    pub height: u32,
+    pub bufsize: i32,
+    pub linesize: [i32; 4],
+    pub data: [*mut u8; 4],
 }
+
+impl Drop for RawYuv420p {
+    fn drop(&mut self) {
+        unsafe {
+            if !self.data[0].is_null() {
+                sys::av_free(self.data[0] as *mut c_void);
+            }
+        };
+    }
+}
+
 
 impl RawYuv420p {
     pub fn luma_size(&self) -> u32 {
@@ -136,7 +133,11 @@ impl RawYuv420p {
     }
 }
 
-unsafe fn decode_video() {
+
+unsafe fn decode_h264_video(
+    source: Vec<u8>,
+) -> Vec<RawYuv420p> {
+    // HELPERS
     unsafe fn decode(
         dec_ctx: *mut AVCodecContext,
         frame: *mut AVFrame,
@@ -166,12 +167,7 @@ unsafe fn decode_video() {
         }
     }
     // I/O
-    let input_path = "assets/samples/test.h264";
-    let output_path = "assets/output/test.yuv";
-    assert!(PathBuf::from(input_path).exists());
-    let input_path_cstr = c_str(input_path);
-    let output_path_cstr = c_str(output_path);
-    let mut f = std::fs::read(input_path).expect("source file");
+    let mut f = source;
     // MISC
     const INBUF_SIZE: u32 = 4096;
     // SETUP AV STATE
@@ -182,7 +178,6 @@ unsafe fn decode_video() {
     assert!(!c.is_null());
     let mut frame: *mut AVFrame = sys::av_frame_alloc();
     let mut inbuf: Vec<u8> = vec![0; (INBUF_SIZE + AV_INPUT_BUFFER_PADDING_SIZE) as usize];
-    // let mut data: Vec<u8> = Vec::new();
     let mut pkt: *mut AVPacket = sys::av_packet_alloc();
     assert!(!pkt.is_null());
     // OPEN
@@ -232,8 +227,7 @@ unsafe fn decode_video() {
     sys::av_frame_free(&mut frame);
     sys::av_packet_free(&mut pkt);
     // DONE
-    println!("frames: {}", output.len());
-    output[50].save(output_path);
+    output
 }
 
 
@@ -242,8 +236,11 @@ unsafe fn decode_video() {
 ///////////////////////////////////////////////////////////////////////////////
 
 pub fn run() {
+    let path = "assets/samples/test.h264";
+    let source = std::fs::read(path).expect("read source file");
+    assert!(PathBuf::from(path).exists());
     unsafe {
-        decode_video();
+        decode_h264_video(source);
     };
 }
 
