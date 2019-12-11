@@ -14,7 +14,9 @@
 
 <hr/>
 
-# Imager
+# Imager - **2019**
+
+**Supports only JPEG images. But does this really well (see benchmarks).**
 
 ## Features
 
@@ -80,6 +82,11 @@ Just use the GitHub issue tracker for this project.
 
 * [Modern Image Optimization for 2020 - Issues, Solutions, and Open Source Solutions](https://medium.com/@colbyn/modern-image-optimization-for-2020-issues-solutions-and-open-source-solutions-543af00e3e51)
 
+# Imager - early to mid **2020**
+
+Lots of stuff under development, including support for a multitude of image formats. Potentially with experimental support for video!
+
+See [imager-core](https://github.com/imager-io/imager-core) for current implementation details and progress.
 
 <hr/>
 
