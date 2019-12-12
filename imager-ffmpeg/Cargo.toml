@@ -3,7 +3,8 @@ name = "imager-ffmpeg"
 version = "0.1.0"
 authors = ["colbyn <hello@colbyn.com>"]
 edition = "2018"
+publish = false
 
 [dependencies]
 libc = "^0.2"
-ffmpeg-dev = "0.3.5"
+ffmpeg-dev = "0.3.6"
