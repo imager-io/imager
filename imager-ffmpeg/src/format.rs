@@ -37,6 +37,7 @@ use ffmpeg_dev::sys::{
     AVPixelFormat_AV_PIX_FMT_YUV420P as AV_PIX_FMT_YUV420P,
 };
 
+
 fn c_str(s: &str) -> CString {
     CString::new(s).expect("str to c str")
 }
@@ -51,10 +52,15 @@ pub struct RawYuv420p {
 
 impl Drop for RawYuv420p {
     fn drop(&mut self) {
+        assert!(!self.data[0].is_null());
         unsafe {
-            if !self.data[0].is_null() {
-                sys::av_free(self.data[0] as *mut c_void);
-            }
+            sys::av_free(self.data[0] as *mut c_void);
+            self.data = [
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+            ];
         };
     }
 }
@@ -132,6 +138,11 @@ impl RawYuv420p {
     }
 }
 
+pub struct RawDecodedMedia {
+    video: LinkedList<RawYuv420p>,
+}
+
+static REFCOUNT: i32 = 0;
 
 struct Decoder {
     fmt_ctx: *mut sys::AVFormatContext,
@@ -161,7 +172,42 @@ struct Decoder {
     audio_frame_count: u32,
 }
 
-static REFCOUNT: i32 = 0;
+impl Drop for Decoder {
+    fn drop(&mut self) {
+        assert!(!self.video_dec_ctx.is_null());
+        assert!(!self.audio_dec_ctx.is_null());
+        assert!(!self.fmt_ctx.is_null());
+        assert!(!self.frame.is_null());
+        assert!(!self.video_dst_data[0].is_null());
+        unsafe {
+            sys::avcodec_free_context(
+                &mut self.video_dec_ctx
+            );
+            sys::avcodec_free_context(
+                &mut self.audio_dec_ctx
+            );
+            sys::avformat_close_input(
+                &mut self.fmt_ctx
+            );
+            sys::av_frame_free(
+                &mut self.frame
+            );
+            sys::av_free(
+                self.video_dst_data[0] as *mut c_void
+            );
+            self.video_dec_ctx = std::ptr::null_mut();
+            self.audio_dec_ctx = std::ptr::null_mut();
+            self.fmt_ctx = std::ptr::null_mut();
+            self.frame = std::ptr::null_mut();
+            self.video_dst_data = [
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+            ];
+        };
+    }
+}
 
 impl Decoder {
     pub unsafe fn new(
@@ -213,7 +259,7 @@ unsafe fn decode_packet(
     *got_frame = 0;
 
     if (decoder.pkt.stream_index == decoder.video_stream_idx) {
-        /* decode video frame */
+        // DECODE VIDEO FRAME
         ret = sys::avcodec_decode_video2(
             decoder.video_dec_ctx,
             decoder.frame,
@@ -221,7 +267,6 @@ unsafe fn decode_packet(
             &mut decoder.pkt,
         );
         if (ret < 0) {
-            // fprintf(stderr, "Error decoding video frame (%s)\n", sys::av_err2str(ret));
             eprintln!("Error decoding video frame: {}", ret);
             return ret;
         }
@@ -238,15 +283,6 @@ unsafe fn decode_packet(
                 eprintln!("invalid width/height/pixel-format");
                 return -1;
             }
-
-            // println!(
-            //     "video_frame n:{} coded_n:{}",
-            //     {
-            //         decoder.video_frame_count += 1;
-            //         decoder.video_frame_count
-            //     },
-            //     (*decoder.frame).coded_picture_number,
-            // );
 
             // copy decoded frame to destination buffer:
             // this is required since rawvideo expects non aligned data
@@ -270,21 +306,27 @@ unsafe fn decode_packet(
     
                 // COPY DECODED FRAME TO DESTINATION BUFFER;
                 // THIS IS REQUIRED SINCE RAWVIDEO EXPECTS NON ALIGNED DATA
-                sys::av_image_copy(
-                    output_picture.data.as_mut_ptr(),
-                    output_picture.linesize.as_mut_ptr(),
-                    decoder.video_dst_data.as_mut_ptr() as *mut *const u8,
-                    decoder.video_dst_linesize.as_mut_ptr(),
-                    AV_PIX_FMT_YUV420P,
-                    decoder.width,
-                    decoder.height,
-                );
+                // sys::av_image_copy(
+                //     output_picture.data.as_mut_ptr(),
+                //     output_picture.linesize.as_mut_ptr(),
+                //     decoder.video_dst_data.as_mut_ptr() as *mut *const u8,
+                //     decoder.video_dst_linesize.as_mut_ptr(),
+                //     AV_PIX_FMT_YUV420P,
+                //     decoder.width,
+                //     decoder.height,
+                // );
+                output_picture.fill_from_frame(decoder.frame);
                 decoder.decoded_video.push_back(output_picture);
             }
         }
     } else if (decoder.pkt.stream_index == decoder.audio_stream_idx) {
         // DECODE AUDIO FRAME
-        ret = sys::avcodec_decode_audio4(decoder.audio_dec_ctx, decoder.frame, got_frame, &decoder.pkt);
+        ret = sys::avcodec_decode_audio4(
+            decoder.audio_dec_ctx,
+            decoder.frame,
+            got_frame,
+            &decoder.pkt,
+        );
         if (ret < 0) {
             panic!("Error decoding audio frame");
         }
@@ -293,21 +335,18 @@ unsafe fn decode_packet(
         // called again with the remainder of the packet data.
         // Sample: fate-suite/lossless-audio/luckynight-partial.shn
         // Also, some decoders might over-read the packet.
-        decoded = ffmpeg_dev::extra::defs::sys_ffmin(ret as usize, decoder.pkt.size as usize) as i32;
+        decoded = {
+            let x = ffmpeg_dev::extra::defs::sys_ffmin(
+                ret as usize,
+                decoder.pkt.size as usize,
+            );
+            x as i32
+        };
 
         if (*got_frame > 0) {
             let mut unpadded_linesize: i32 = {
                 (*decoder.frame).nb_samples * sys::av_get_bytes_per_sample((*decoder.frame).format)
             };
-            // println!(
-            //     "audio_frame n:{} nb_samples:{} pts:{}",
-            //     "(todo)",
-            //     "(todo)",
-            //     "(todo)",
-            //     // audio_frame_count++,
-            //     // frame->nb_samples,
-            //     // sys::av_ts2timestr(frame->pts, &audio_dec_ctx->time_base)),
-            // );
 
             // Write the raw audio data samples of the first plane. This works
             // fine for packed formats (e.g. AV_SAMPLE_FMT_S16). However,
@@ -361,7 +400,9 @@ unsafe fn open_codec_context(
         assert!(!(*st).codecpar.is_null());
 
         // FIND DECODER FOR THE STREAM
-        dec = sys::avcodec_find_decoder((*(*st).codecpar).codec_id);
+        dec = sys::avcodec_find_decoder(
+            (*(*st).codecpar).codec_id
+        );
         if (dec.is_null()) {
             unimplemented!("Failed to find codec");
             return unimplemented!();
@@ -376,7 +417,10 @@ unsafe fn open_codec_context(
         }
 
         // COPY CODEC PARAMETERS FROM INPUT STREAM TO OUTPUT CODEC CONTEXT
-        ret = sys::avcodec_parameters_to_context(*dec_ctx, (*st).codecpar);
+        ret = sys::avcodec_parameters_to_context(
+            *dec_ctx,
+            (*st).codecpar,
+        );
         if (ret < 0) {
             panic!("Failed to copy codec parameters to decoder context");
             return unimplemented!();
@@ -475,8 +519,8 @@ unsafe fn process(
         audio_dst_filename,
     );
 
-    std::fs::write(video_dst_filename, &[]);
-    std::fs::write(audio_dst_filename, &[]);
+    // std::fs::write(video_dst_filename, &[]);
+    // std::fs::write(audio_dst_filename, &[]);
 
 
     // OPEN INPUT FILE, AND ALLOCATE FORMAT CONTEXT
@@ -500,7 +544,7 @@ unsafe fn process(
         decoder.fmt_ctx,
         AVMEDIA_TYPE_VIDEO,
     ) >= 0) {
-        decoder.video_stream = (*(*decoder.fmt_ctx).streams).offset(decoder.video_stream_idx as isize);
+        decoder.video_stream = (*(*decoder.fmt_ctx).streams).add(decoder.video_stream_idx as usize);
         
         // ALLOCATE IMAGE WHERE THE DECODED IMAGE WILL BE PUT
         decoder.width = (*decoder.video_dec_ctx).width;
@@ -590,41 +634,21 @@ unsafe fn process(
 
     println!("Demuxing succeeded");
 
-    // if (video_stream) {
-    //     printf("Play the output video file with the command:\n"
-    //            "ffplay -f rawvideo -pix_fmt %s -video_size %dx%d %s\n",
-    //            av_get_pix_fmt_name(pix_fmt), width, height,
-    //            video_dst_filename);
-    // }
-
-    // if (audio_stream) {
-    //     enum AVSampleFormat sfmt = audio_dec_ctx->sample_fmt;
-    //     int n_channels = audio_dec_ctx->channels;
-    //     const char *fmt;
-    //     if (av_sample_fmt_is_planar(sfmt)) {
-    //         const char *packed = av_get_sample_fmt_name(sfmt);
-    //         printf("Warning: the sample format the decoder produced is planar "
-    //                "(%s). This example will output the first channel only.\n",
-    //                packed ? packed : "?");
-    //         sfmt = av_get_packed_sample_fmt(sfmt);
-    //         n_channels = 1;
-    //     }
-    //     if ((ret = get_format_from_sample_fmt(&fmt, sfmt)) < 0)
-    //         goto end;
-    //     printf("Play the output audio file with the command:\n"
-    //            "ffplay -f %s -ac %d -ar %d %s\n",
-    //            fmt, n_channels, audio_dec_ctx->sample_rate,
-    //            audio_dst_filename);
-    // }
-
-    // CLEANUP
-    sys::avcodec_free_context(&mut decoder.video_dec_ctx);
-    sys::avcodec_free_context(&mut decoder.audio_dec_ctx);
-    sys::avformat_close_input(&mut decoder.fmt_ctx);
-    sys::av_frame_free(&mut decoder.frame);
-    sys::av_free(decoder.video_dst_data[0] as *mut c_void);
-
-    // DONE
+    // DONEs
+    println!("frames: {}", decoder.decoded_video.len());
+    for (ix, picture) in decoder.decoded_video.iter().enumerate() {
+        if ix == 500 {
+            picture.save("assets/output/test.yuv");
+        }
+    }
+    // decoder.decoded_video
+    //     .front()
+    //     .expect("not empty")
+    //     .save("assets/output/front.yuv");
+    // decoder.decoded_video
+    //     .back()
+    //     .expect("not empty")
+    //     .save("assets/output/back.yuv");
 }
 
 
