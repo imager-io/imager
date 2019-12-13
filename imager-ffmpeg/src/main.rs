@@ -2,7 +2,9 @@
 pub mod mux;
 pub mod dec;
 pub mod demux;
+pub mod format;
 
 fn main() {
-    demux::run();
+    // demux::run();
+    format::run();
 }
