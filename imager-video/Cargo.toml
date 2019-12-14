@@ -1,5 +1,5 @@
 [package]
-name = "imager-x264"
+name = "imager-video"
 version = "0.1.0"
 authors = ["colbyn <hello@colbyn.com>"]
 edition = "2018"
@@ -7,9 +7,10 @@ publish = false
 
 [dependencies]
 libc = "^0.2"
-x264-dev = "0.1.1"
-vmaf-sys = "0.0.10"
 image = "^0.22"
-webp-dev = "0.3.0"
 itertools = "0.8.2"
 lazy_static = "1.4.0"
+x264-dev = "0.1.1"
+vmaf-sys = "0.0.10"
+webp-dev = "0.3.0"
+ffmpeg-dev = "0.3.6"
