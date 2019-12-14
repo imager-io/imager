@@ -53,7 +53,7 @@ impl DecodedImage {
         }
     }
     pub fn from_image(source: &DynamicImage) -> Result<Self, String> {
-        let source = crate::utils::media::native_encode_as_jpeg(source, 100);
+        let source = crate::codec::jpeg_utils::native_encode_as_jpeg(source, 100);
         Ok(DecodedImage::mozjpeg_decode(&source))
     }
     pub fn open(path: &PathBuf) -> Result<Self, String> {

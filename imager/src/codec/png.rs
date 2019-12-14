@@ -9,7 +9,7 @@ use exoquant::*;
 use lodepng::Bitmap;
 use lodepng::RGBA;
 use image::{DynamicImage, GenericImage, GenericImageView};
-use imager_av::vmaf::{self, Yuv420pImage};
+use crate::vmaf::{self, Yuv420pImage};
 
 
 ///////////////////////////////////////////////////////////////////////////////

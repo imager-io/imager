@@ -1,12 +1,12 @@
 [package]
-name = "imager-av"
-version = "0.3.0"
+name = "imager"
+version = "0.1.0"
 authors = ["colbyn <hello@colbyn.com>"]
 edition = "2018"
 license = "MPL-2.0"
 repository = "https://github.com/imager-io/imager-core"
 homepage = "https://github.com/imager-io/imager-core"
-description = "Common stuff used by other Imager components."
+description = "todo"
 keywords = ["image"]
 exclude = ["assets"]
 
@@ -31,6 +31,7 @@ image = "^0.22"
 imageproc = "^0.19"
 png = "0.15.1"
 rgb2yuv420 = "0.2.3"
+
 
 [features]
 default = []

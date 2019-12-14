@@ -7,10 +7,10 @@ use serde::{Serialize, Deserialize};
 use image::{DynamicImage, GenericImage, FilterType, GenericImageView};
 use rayon::prelude::*;
 use itertools::Itertools;
-use imager_av::classifier::{self, Class};
-use imager_av::frontend::data::{OutputSize, Resolution};
-use imager_av::vmaf;
-use crate::jpeg::DecodedImage;
+use crate::classifier::{self, Class};
+use crate::data::{OutputSize, Resolution,};
+use crate::vmaf;
+use crate::codec::jpeg::{DecodedImage};
 
 
 #[derive(Clone)]
@@ -154,7 +154,7 @@ impl Source {
         }
     }
     fn run_instance(&self, q: u8) -> (Vec<u8>, bool) {
-        let compressed = crate::jpeg::encode(&self.source, q);
+        let compressed = crate::codec::jpeg::encode(&self.source, q);
         // TODO - CLEANUP
         let report = {
             let reconstructed = DecodedImage::load_from_memory(&compressed).expect("search failed - reconstructed");
@@ -198,7 +198,7 @@ impl Source {
             // BAD
             None => {
                 let fallback_q = 98;
-                let payload = crate::jpeg::encode(&self.source, fallback_q);
+                let payload = crate::codec::jpeg::encode(&self.source, fallback_q);
                 let out_meta = OutMeta {
                     start_q: starting_q,
                     end_q: fallback_q,
@@ -212,7 +212,7 @@ impl Source {
                 // BAD
                 if meta.start_q == 0 && meta.end_q == 0 {
                     let fallback_q = 75;
-                    let payload = crate::jpeg::encode(&self.source, fallback_q);
+                    let payload = crate::codec::jpeg::encode(&self.source, fallback_q);
                     let out_meta = OutMeta {
                         start_q: starting_q,
                         end_q: fallback_q,

@@ -1,11 +1,6 @@
 [workspace]
 members = [
-    "imager-av",
-    "imager-jpeg",
-    "imager-png",
-    "imager-x264",
-    "imager-ffmpeg",
-    "imager-webp",
+    "imager",
 ]
 
 exclude = [
