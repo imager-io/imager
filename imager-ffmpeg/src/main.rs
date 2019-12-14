@@ -5,6 +5,5 @@ pub mod demux;
 pub mod format;
 
 fn main() {
-    // demux::run();
-    format::run();
+    format::decode::run();
 }
