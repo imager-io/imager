@@ -670,15 +670,13 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
         decoder.video_stream = (*(*decoder.fmt_ctx).streams).add(decoder.video_stream_idx as usize);
         
         // DEV
-        (*decoder.video_dec_ctx).pix_fmt = AV_PIX_FMT_YUV420P;
+        // (*decoder.video_dec_ctx).pix_fmt = AV_PIX_FMT_YUV420P;
 
         // ALLOCATE IMAGE WHERE THE DECODED IMAGE WILL BE PUT
         decoder.width = (*decoder.video_dec_ctx).width;
         decoder.height = (*decoder.video_dec_ctx).height;
-        println!("decoder.pix_fmt: {}", decoder.pix_fmt);
         decoder.pix_fmt = (*decoder.video_dec_ctx).pix_fmt;
-        println!("decoder.pix_fmt: {}", decoder.pix_fmt);
-        assert!(decoder.pix_fmt == AV_PIX_FMT_YUV420P);
+        // assert!(decoder.pix_fmt == AV_PIX_FMT_YUV420P);
         ret = sys::av_image_alloc(
             decoder.video_dst_data.as_mut_ptr(),
             decoder.video_dst_linesize.as_mut_ptr(),

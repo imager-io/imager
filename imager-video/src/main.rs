@@ -8,7 +8,7 @@ use data::{VideoBuffer, Yuv420P};
 
 fn format() {
     let path = "assets/samples/test.h264";
-    let video = VideoBuffer::open(path).expect("decode video file");
+    let video = VideoBuffer::open_video(path).expect("decode video file");
     println!("video frames: {}", video.as_frames().len());
     video
         .as_frames()
