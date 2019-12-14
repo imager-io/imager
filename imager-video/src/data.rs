@@ -9,6 +9,7 @@ use std::os::raw::{c_char, c_int};
 use libc::{size_t, c_float, c_void};
 use itertools::Itertools;
 use image::{DynamicImage, GenericImage, GenericImageView};
+use rayon::prelude::*;
 use webp_dev::sys::webp::{
     self as webp_sys,
     WebPConfig,
@@ -189,6 +190,9 @@ impl Yuv420P {
         assert!(plane.len() == self.chroma_size() as usize);
         plane
     }
+    pub fn dimensions(&self) -> (u32, u32) {
+        (self.width, self.height)
+    }
 }
 
 
@@ -201,9 +205,18 @@ pub struct VideoBuffer {
     width: u32,
     height: u32,
     frames: Vec<Yuv420P>,
+    cursor: usize,
 }
 
 impl VideoBuffer {
+    pub fn singleton(frame: Yuv420P) -> Self {
+        VideoBuffer {
+            width: frame.width,
+            height: frame.height,
+            frames: vec![frame],
+            cursor: 0,
+        }
+    }
     pub fn load_from_memory(source: &[u8]) -> Result<Self, ()> {
         let result = unsafe {
             crate::format::decode::demux_decode(source.to_vec())
@@ -215,6 +228,7 @@ impl VideoBuffer {
             width,
             height,
             frames: result,
+            cursor: 0,
         })
     }
     pub fn open_video<P: AsRef<Path>>(path: P) -> Result<Self, ()> {
@@ -225,7 +239,7 @@ impl VideoBuffer {
     pub fn open_image_dir<P: AsRef<Path>>(dir_path: P) -> Result<Self, ()> {
         assert!(dir_path.as_ref().exists());
         let frames = open_dir_sorted_paths(dir_path)
-            .into_iter()
+            .into_par_iter()
             .map(|path| Yuv420P::open_image(&path).expect("open and decode image"))
             .collect::<Vec<_>>();
         assert!(!frames.is_empty());
@@ -234,7 +248,12 @@ impl VideoBuffer {
             let h = frames[0].height;
             (w, h)
         };
-        Ok(VideoBuffer {width, height, frames})
+        Ok(VideoBuffer {
+            width,
+            height,
+            frames,
+            cursor: 0,
+        })
     }
     pub fn width(&self) -> u32 {
         self.width
@@ -247,5 +266,19 @@ impl VideoBuffer {
     }
     pub fn as_frames(&self) -> &[Yuv420P] {
         self.frames.as_ref()
+    }
+    pub fn into_frames(self) -> Vec<Yuv420P> {
+        self.frames
+    }
+    pub fn next(&mut self) -> Option<&Yuv420P> {
+        let frame = self.frames.get(self.cursor)?;
+        self.cursor = self.cursor + 1;
+        Some(frame)
+    }
+    pub fn set_cursor(&mut self, cursor_pos: usize) {
+        self.cursor = cursor_pos;
+    }
+    pub fn position(&self) -> usize {
+        self.cursor
     }
 }

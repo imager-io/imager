@@ -12,7 +12,7 @@ use x264_dev::{raw, sys};
 use itertools::Itertools;
 
 use crate::data::{Yuv420P, VideoBuffer};
-// use crate::stream::{Stream, FileStream, SingleImage};
+use crate::tool::vmaf;
 
 fn c_str(s: &str) -> CString {
     CString::new(s).expect("str to c str")
@@ -43,16 +43,15 @@ pub const SYSTEM_MODE: Mode = Mode::Quality;
 // HELPERS
 ///////////////////////////////////////////////////////////////////////////////
 
+unsafe fn apply(param: &mut sys::X264ParamT, key: &str, value: &str) {
+    let key = c_str(key);
+    let value = c_str(value);
+    assert!(sys::x264_param_parse(param, key.as_ptr(), value.as_ptr()) == 0);
+    std::mem::forget(key);
+    std::mem::forget(value);
+}
+
 unsafe fn new_param(width: u32, height: u32) -> sys::X264ParamT {
-    // HELPERS
-    unsafe fn apply(param: &mut sys::X264ParamT, key: &str, value: &str) {
-        let key = c_str(key);
-        let value = c_str(value);
-        assert!(sys::x264_param_parse(param, key.as_ptr(), value.as_ptr()) == 0);
-        std::mem::forget(key);
-        std::mem::forget(value);
-    }
-    
     // INIT PARAM
     let mut param: sys::X264ParamT = unsafe {std::mem::zeroed()};
     let profile = CString::new("high").expect("CString failed");
@@ -87,6 +86,9 @@ unsafe fn new_param(width: u32, height: u32) -> sys::X264ParamT {
     param.b_repeat_headers = 1;
     param.b_annexb = 1;
 
+    // CPU FLAGS
+    apply(&mut param, "non-deterministic", "1");
+
     // FRAME-TYPE
     apply(&mut param, "partitions", "all");
     apply(&mut param, "constrained-intra", "1");
@@ -106,9 +108,7 @@ unsafe fn new_param(width: u32, height: u32) -> sys::X264ParamT {
     apply(&mut param, "cqm", "flat");
     apply(&mut param, "no-weightb", "1");
     apply(&mut param, "no-mixed-refs", "1");
-    apply(&mut param, "no-chroma-me", "1");
     apply(&mut param, "no-dct-decimate", "1");
-    apply(&mut param, "non-deterministic", "1");
 
     // FRAME-TYPE
     apply(&mut param, "partitions", "all");
@@ -148,13 +148,7 @@ pub unsafe fn encode(stream: VideoBuffer, crf: f32) -> Result<Vec<u8>, String> {
     // INIT PARAM
     ///////////////////////////////////////////////////////////////////////////
     let mut param: sys::X264ParamT = new_param(width, height);
-    unsafe fn apply(param: &mut sys::X264ParamT, key: &str, value: &str) {
-        let key = c_str(key);
-        let value = c_str(value);
-        assert!(sys::x264_param_parse(param, key.as_ptr(), value.as_ptr()) == 0);
-        std::mem::forget(key);
-        std::mem::forget(value);
-    }
+    apply(&mut param, "crf", &format!("{}", crf));
     ///////////////////////////////////////////////////////////////////////////
     // INIT PICTURE
     ///////////////////////////////////////////////////////////////////////////
@@ -180,8 +174,10 @@ pub unsafe fn encode(stream: VideoBuffer, crf: f32) -> Result<Vec<u8>, String> {
     assert!(picture.img.i_stride[1] == (width / 2) as i32);
     assert!(picture.img.i_stride[2] == (width / 2) as i32);
     assert!(picture.param.is_null());
-    picture.param = &mut picture_param;
+    // picture.param = &mut picture_param;
+    ///////////////////////////////////////////////////////////////////////////
     // ???
+    ///////////////////////////////////////////////////////////////////////////
     let mut p_nal: *mut sys::X264NalT = std::ptr::null_mut();
     let mut i_nal: i32 = std::mem::zeroed();
     ///////////////////////////////////////////////////////////////////////////
@@ -201,7 +197,7 @@ pub unsafe fn encode(stream: VideoBuffer, crf: f32) -> Result<Vec<u8>, String> {
         u_ptr.copy_from_slice(&source.u());
         v_ptr.copy_from_slice(&source.v());
         // PICTURE SETTINGS
-        apply(&mut picture_param, "crf", "36");
+        // apply(&mut picture_param, "crf", &format!("{}", crf));
         // ENCODE
         let i_frame_size = sys::x264_encoder_encode(
             encoder_ctx,
@@ -255,16 +251,19 @@ pub unsafe fn encode(stream: VideoBuffer, crf: f32) -> Result<Vec<u8>, String> {
 ///////////////////////////////////////////////////////////////////////////////
 
 
-pub fn opt(source: Yuv420P) {
-
+pub fn opt_frame(source: Yuv420P) {
+    let video = VideoBuffer::singleton(source);
+    let crf = 0.0;
+    let encoded = unsafe {encode(video, crf).expect("encode yuv420p")};
 }
 
 pub fn opt_traverse(source: VideoBuffer) {
     let results = source
-        .as_frames()
-        .par_iter()
+        .into_frames()
+        .into_par_iter()
         .map(|picture| {
-
+            // let video = VideoBuffer::singleton(picture);
+            // let encoded = encode(video, 0).expect("encode yuv420p");
         })
         .collect::<Vec<_>>();
 }
@@ -274,7 +273,8 @@ pub fn opt_traverse(source: VideoBuffer) {
 ///////////////////////////////////////////////////////////////////////////////
 
 pub fn run() {
-    let source = VideoBuffer::open_video("assets/samples/tos-gop1.h264").expect("decode video file");
+    let source = VideoBuffer::open_video("assets/samples/tos-gop1.h264")
+        .expect("decode video file");
     let output = unsafe {
         encode(source, 40.0).expect("encode faild")
     };
