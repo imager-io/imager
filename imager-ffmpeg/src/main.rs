@@ -1,8 +1,8 @@
 #![allow(unused)]
-pub mod mux;
-pub mod dec;
-pub mod demux;
-pub mod format;
+mod mux;
+mod dec;
+mod format;
+mod codec;
 
 fn main() {
     format::decode::run();

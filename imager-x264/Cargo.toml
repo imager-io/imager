@@ -13,3 +13,4 @@ image = "^0.22"
 webp-dev = "0.3.0"
 itertools = "0.8.2"
 lazy_static = "1.4.0"
+imager-ffmpeg = {path = "../imager-ffmpeg"}
