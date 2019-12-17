@@ -525,7 +525,11 @@ unsafe fn get_format_from_sample_fmt(
     return -1;
 }
 
+
 pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
+    // DEBUG
+    let suppress_log = true;
+    sys::av_log_set_level(16);
     // SETUP
     let mut got_frame: i32 = std::mem::zeroed();
     let mut ret = 0;
@@ -616,24 +620,6 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
         Some(seek_packet),
     );
     assert!(!avio_ctx.is_null());
-
-    // SOURCE METADATA
-    // let raw_video = false;
-    // if raw_video {
-    //     // assert!(sys::av_dict_set(
-    //     //     &mut decoder.demux_ops,
-    //     //     c_str("pix_fmt").as_ptr(),
-    //     //     c_str("yuv420p").as_ptr(),
-    //     //     0,
-    //     // ) >= 0);
-    //     // assert!(sys::av_dict_set(
-    //     //     &mut decoder.demux_ops,
-    //     //     c_str("pix_fmt").as_ptr(),
-    //     //     c_str("yuv420p").as_ptr(),
-    //     //     0,
-    //     // ) >= 0);
-    //     // unimplemented!("other raw video stuff");
-    // }
         
     // OPEN INPUT FILE, AND ALLOCATE FORMAT CONTEXT
     assert!(!decoder.fmt_ctx.is_null());
@@ -641,8 +627,6 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
     assert!((*decoder.fmt_ctx).pb.is_null());
     (*decoder.fmt_ctx).pb = avio_ctx;
     (*decoder.fmt_ctx).flags = sys::AVFMT_FLAG_CUSTOM_IO as i32;
-    // (*decoder.fmt_ctx).iformat = sys::av_find_input_format(c_str("mp4").as_ptr());
-    // (*decoder.fmt_ctx).iformat = sys::av_find_input_format(c_str("h264").as_ptr());
     (*decoder.fmt_ctx).probesize = 1200000;
     {
         let status = sys::avformat_open_input(
@@ -668,15 +652,11 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
         AVMEDIA_TYPE_VIDEO,
     ) >= 0) {
         decoder.video_stream = (*(*decoder.fmt_ctx).streams).add(decoder.video_stream_idx as usize);
-        
-        // DEV
-        // (*decoder.video_dec_ctx).pix_fmt = AV_PIX_FMT_YUV420P;
 
         // ALLOCATE IMAGE WHERE THE DECODED IMAGE WILL BE PUT
         decoder.width = (*decoder.video_dec_ctx).width;
         decoder.height = (*decoder.video_dec_ctx).height;
         decoder.pix_fmt = (*decoder.video_dec_ctx).pix_fmt;
-        // assert!(decoder.pix_fmt == AV_PIX_FMT_YUV420P);
         ret = sys::av_image_alloc(
             decoder.video_dst_data.as_mut_ptr(),
             decoder.video_dst_linesize.as_mut_ptr(),
@@ -704,12 +684,14 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
     }
 
     // DUMP INPUT INFORMATION TO STDERR
-    sys::av_dump_format(
-        decoder.fmt_ctx,
-        0,
-        std::ptr::null(),
-        0,
-    );
+    if !suppress_log {
+        sys::av_dump_format(
+            decoder.fmt_ctx,
+            0,
+            std::ptr::null(),
+            0,
+        );
+    }
 
     if (decoder.audio_stream.is_null() && decoder.video_stream.is_null()) {
         panic!("Could not find audio or video stream in the input, aborting");
@@ -726,10 +708,14 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
     decoder.pkt.size = 0;
 
     if (!decoder.video_stream.is_null()) {
-        println!("Demuxing video from file");
+        if !suppress_log {
+            println!("Demuxing video from file");
+        }
     }
     if (!decoder.audio_stream.is_null()) {
-        println!("Demuxing audio from file");
+        if !suppress_log {
+            println!("Demuxing audio from file");
+        }
     }
 
     // READ FRAMES FROM THE FILE
@@ -762,7 +748,9 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
         decode_packet(&mut got_frame, 1, &mut decoder);
     }
 
-    println!("Demuxing succeeded");
+    if !suppress_log {
+        println!("Demuxing succeeded");
+    }
 
     // RETURN VALUES
     let decoded_frames = decoder.decoded_video

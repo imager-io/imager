@@ -1,14 +1,15 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
+use std::rc::Rc;
 use std::collections::LinkedList;
-use std::convert::AsRef;
+use std::convert::{AsRef, TryFrom};
 use std::path::{PathBuf, Path};
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
 use libc::{size_t, c_float, c_void};
 use itertools::Itertools;
-use image::{DynamicImage, GenericImage, GenericImageView};
+use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer};
 use rayon::prelude::*;
 use webp_dev::sys::webp::{
     self as webp_sys,
@@ -47,7 +48,7 @@ pub fn open_dir_sorted_paths<P: AsRef<Path>>(path: P) -> Vec<PathBuf> {
         .collect::<Vec<_>>()
 }
 
-fn image_convert_pixels_using_webp(source: &DynamicImage) -> Yuv420P {
+unsafe fn convert_to_yuv_using_webp(source: &DynamicImage) -> Yuv420P {
     let (width, height) = source.dimensions();
     assert!(width < webp_sys::WEBP_MAX_DIMENSION);
     assert!(height < webp_sys::WEBP_MAX_DIMENSION);
@@ -111,6 +112,65 @@ fn image_convert_pixels_using_webp(source: &DynamicImage) -> Yuv420P {
     result
 }
 
+unsafe fn convert_to_rgba_using_webp(source: &Yuv420P) -> DynamicImage {
+    let (width, height) = source.dimensions();
+    assert!(width < webp_sys::WEBP_MAX_DIMENSION);
+    assert!(height < webp_sys::WEBP_MAX_DIMENSION);
+    let mut picture: WebPPicture = unsafe {std::mem::zeroed()};
+    assert!(webp_sys::webp_picture_init(&mut picture) != 0);
+    let argb_stride = width;
+    picture.use_argb = 0;
+    picture.width = width as i32;
+    picture.height = height as i32;
+    picture.argb_stride = argb_stride as i32;
+    picture.colorspace = webp_sys::WEBP_YUV420;
+    // ALLOCATE
+    assert!(webp_sys::webp_picture_alloc(&mut picture) != 0);
+    // FILL SOURCE PIXEL BUFFERS
+    {
+        // CHECKS
+        assert!(!picture.y.is_null());
+        assert!(!picture.u.is_null());
+        assert!(!picture.v.is_null());
+        // GO
+        let y_size = source.luma_size();
+        let uv_size = source.chroma_size();
+        let mut y = std::slice::from_raw_parts_mut(picture.y, y_size as usize);
+        let mut u = std::slice::from_raw_parts_mut(picture.u, uv_size as usize);
+        let mut v = std::slice::from_raw_parts_mut(picture.v, uv_size as usize);
+        y.copy_from_slice(source.y());
+        u.copy_from_slice(source.u());
+        v.copy_from_slice(source.v());
+    };
+    // CONVERT
+    assert!(picture.argb.is_null());
+    assert!(webp_sys::webp_picture_has_transparency(&picture) == 0);
+    assert!(webp_sys::webp_picture_yuva_to_argb(
+        &mut picture,
+    ) != 0);
+    // CHECKS
+    assert!(picture.use_argb == 1);
+    assert!(!picture.argb.is_null());
+    assert!(webp_sys::webp_picture_has_transparency(&picture) == 0);
+    // GET RESULT DATA
+    assert!(picture.argb_stride as u32 == width);
+    let rgba_output = ::image::RgbaImage::from_fn(width, height, |x_pos, y_pos| {
+        let ptr_ix = (y_pos * width) + x_pos;
+        let px = *picture.argb.add(ptr_ix as usize);
+        let [a, r, g, b]: [u8; 4] = std::mem::transmute(px.to_be());
+        ::image::Rgba([r, g, b, a])
+    });
+    let rgba_output = DynamicImage::ImageRgba8(rgba_output);
+    // CLEANUP
+    unsafe {
+        webp_sys::webp_picture_free(&mut picture);
+    };
+    std::mem::drop(picture);
+    // DONE
+    rgba_output
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // PICTURE BUFFERS
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,7 +188,7 @@ impl Yuv420P {
         Yuv420P::from_image(&source)
     }
     pub fn from_image(source: &DynamicImage) -> Result<Self, ()> {
-        Ok(image_convert_pixels_using_webp(source))
+        Ok(unsafe{ convert_to_yuv_using_webp(source) })
     }
     pub fn open_yuv<P: AsRef<Path>>(path: P, width: u32, height: u32) -> Result<Self, ()> {
         let source = std::fs::read(path).expect("read raw yuv file");
@@ -162,6 +222,9 @@ impl Yuv420P {
             path,
         );
         std::fs::write(path, &self.data);
+    }
+    pub fn to_rgba_image(&self) -> DynamicImage {
+        unsafe {convert_to_rgba_using_webp(self)}
     }
     pub fn y(&self) -> &[u8] {
         assert!(self.expected_yuv420p_size());
@@ -204,7 +267,7 @@ impl Yuv420P {
 pub struct VideoBuffer {
     width: u32,
     height: u32,
-    frames: Vec<Yuv420P>,
+    frames: Rc<Vec<Yuv420P>>,
     cursor: usize,
 }
 
@@ -213,7 +276,7 @@ impl VideoBuffer {
         VideoBuffer {
             width: frame.width,
             height: frame.height,
-            frames: vec![frame],
+            frames: Rc::new(vec![frame]),
             cursor: 0,
         }
     }
@@ -227,7 +290,7 @@ impl VideoBuffer {
         Ok(VideoBuffer {
             width,
             height,
-            frames: result,
+            frames: Rc::new(result),
             cursor: 0,
         })
     }
@@ -251,7 +314,7 @@ impl VideoBuffer {
         Ok(VideoBuffer {
             width,
             height,
-            frames,
+            frames: Rc::new(frames),
             cursor: 0,
         })
     }
@@ -268,7 +331,12 @@ impl VideoBuffer {
         self.frames.as_ref()
     }
     pub fn into_frames(self) -> Vec<Yuv420P> {
-        self.frames
+        let refs = Rc::strong_count(&self.frames);
+        if refs == 0 {
+            Rc::try_unwrap(self.frames).expect("shuld have no other refs")
+        } else {
+            self.frames.as_ref().clone()
+        }
     }
     pub fn next(&mut self) -> Option<&Yuv420P> {
         let frame = self.frames.get(self.cursor)?;
@@ -280,5 +348,13 @@ impl VideoBuffer {
     }
     pub fn position(&self) -> usize {
         self.cursor
+    }
+    pub fn as_fresh_cursor(&self) -> VideoBuffer {
+        VideoBuffer {
+            width: self.width,
+            height: self.height,
+            frames: self.frames.clone(),
+            cursor: self.cursor,
+        }
     }
 }

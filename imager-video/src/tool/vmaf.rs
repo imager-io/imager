@@ -161,15 +161,15 @@ pub unsafe fn vmaf_controller<'a>(stream1: &'a mut VideoBuffer, stream2: &'a mut
     vmaf_score
 }
 
-pub fn get_report(stream1: &mut VideoBuffer, stream2: &mut VideoBuffer) -> f64 {
+pub fn get_report(stream1: &VideoBuffer, stream2: &VideoBuffer) -> f64 {
     // SETUP
-    stream1.set_cursor(0);
-    stream2.set_cursor(0);
+    let mut stream1 = stream1.as_fresh_cursor();
+    let mut stream2 = stream2.as_fresh_cursor();
     assert!(stream1.as_frames().len() == stream2.as_frames().len());
     // LOCK
     let lock = VMAF_LOCK.lock().expect("failed to lock vmaf work");
     // GO!
-    let score = unsafe {vmaf_controller(stream1, stream2)};
+    let score = unsafe {vmaf_controller(&mut stream1, &mut stream2)};
     // UNLOCK
     std::mem::drop(lock);
     // UPDATE
@@ -183,6 +183,6 @@ pub fn run() {
     let mut stream1 = VideoBuffer::open_video("assets/samples/test.h264").expect("source file");
     let mut stream2 = VideoBuffer::open_video("assets/samples/test.h264").expect("source file");
 
-    let score = get_report(&mut stream1, &mut stream2);
+    let score = get_report(&stream1, &stream2);
     println!("score: {}", score);
 }
