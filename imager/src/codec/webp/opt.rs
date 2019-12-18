@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use serde::{Serialize, Deserialize};
 use rayon::prelude::*;
 use image::{DynamicImage, GenericImage, GenericImageView};
+use crate::data::{VideoBuffer, Yuv420P};
 use crate::classifier::{self, Class};
 use crate::vmaf;
 use crate::codec::webp::encode::lossy::{encode};
@@ -18,13 +19,15 @@ pub struct OutMeta {
 
 pub fn opt(source: &DynamicImage) -> (Vec<u8>, OutMeta) {
     let class = classifier::report(source);
-    let vmaf_source = vmaf::Yuv420pImage::from_image(source);
+    let vmaf_source = VideoBuffer::from_image(source)
+        .expect("image to yuv frame");
     let run = |q: f32| -> (Vec<u8>, f64) {
         let compressed = encode(source, q);
         let score = {
             let vmaf_derivative = crate::codec::webp::decode::decode(&compressed);
-            let vmaf_derivative = vmaf::Yuv420pImage::from_image(&vmaf_derivative);
-            vmaf::report(&vmaf_source, &vmaf_derivative)
+            let vmaf_derivative = VideoBuffer::from_image(&vmaf_derivative)
+                .expect("image to yuv frame");
+            vmaf::get_report(&vmaf_source, &vmaf_derivative)
         };
         (compressed, score)
     };
