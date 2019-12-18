@@ -1,6 +1,3 @@
-//! NOTE:
-//! * Just used for development.
-//! * Imager CLI tools are under the imager-tools GitHub repo.
 #![allow(unused)]
 pub mod classifier;
 pub mod codec;
