@@ -7,6 +7,3 @@ pub mod codec;
 pub mod vmaf;
 pub mod data;
 
-fn main() {
-    codec::jpeg::run();
-}
