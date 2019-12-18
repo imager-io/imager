@@ -33,7 +33,7 @@ imageproc = "^0.19"
 png = "0.15.1"
 rgb2yuv420 = "0.2.3"
 webp-dev = "0.3.0"
-
+indicatif = "0.12.0"
 
 [features]
 default = []
