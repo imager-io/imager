@@ -14,7 +14,7 @@ readme = "README.md"
 [dependencies]
 libc = "^0.2"
 mozjpeg-sys = "^0.10"
-vmaf-sys = {version = "0.0.10", features = ["buildtype-docs-only"]}
+vmaf-sys = {version = "0.0.10"}
 colourado = "0.2.0"
 glob = "^0.3"
 structopt = "0.3.5"
@@ -39,5 +39,5 @@ default = []
 buildtype-docs-only = []
 
 [package.metadata.docs.rs]
-no-default-features = true
+# no-default-features = true
 features = ["buildtype-docs-only"]
