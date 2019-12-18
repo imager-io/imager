@@ -22,6 +22,38 @@ use webp_dev::sys::webp::{
 };
 
 
+///////////////////////////////////////////////////////////////////////////////
+// OUTPUT-FORMAT
+///////////////////////////////////////////////////////////////////////////////
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum OutputFormat {
+    Jpeg,
+    Png,
+    WebP,
+}
+
+impl FromStr for OutputFormat {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "jpeg" => Ok(OutputFormat::Jpeg),
+            "jpg" => Ok(OutputFormat::Jpeg),
+            "png" => Ok(OutputFormat::Png),
+            "webp" => Ok(OutputFormat::Png),
+            _ => {
+                Err(format!("Unknown or unsupported output format {}", s))
+            }
+        }
+    }
+}
+
+impl Default for OutputFormat {
+    fn default() -> Self {
+        OutputFormat::Jpeg
+    }
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // RESOLUTION

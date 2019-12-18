@@ -1,4 +1,4 @@
-# Imager (Low-Level Implementation or Engine)
+# Imager (CLI & Low-Level Implementation or Engine)
 
 ## About
 
