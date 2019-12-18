@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use itertools::Itertools;
 use serde::{Serialize, Deserialize};
 use rayon::prelude::*;
 use image::{DynamicImage, GenericImage, GenericImageView};
@@ -7,7 +8,7 @@ use crate::classifier::{self, Class};
 use crate::vmaf;
 use crate::codec::webp::encode::lossy::{encode};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OutMeta {
     pub class: Class,
     pub score: f64,
@@ -46,7 +47,7 @@ pub fn opt(source: &DynamicImage) -> (Vec<u8>, OutMeta) {
     let terminate = |score: f64| {
         let (width, height) = source.dimensions();
         let is_small = {
-            width < 600 || height < 600
+            (width * height) < (600 * 600)
         };
         let mut threshold;
         match class.class {
@@ -64,22 +65,61 @@ pub fn opt(source: &DynamicImage) -> (Vec<u8>, OutMeta) {
                 }
             }
             Class::H1 | Class::H2 if is_small => {
-                threshold = 88.0;
+                threshold = 70.0;
             }
             Class::H1 => {
-                threshold = 75.0;
+                threshold = 60.0;
             }
             Class::H2 => {
-                threshold = 65.0;
+                threshold = 55.0;
             }
         }
         score >= threshold
     };
     // SEARCH
-    let start_q = match class.class {
-        Class::H1 | Class::H2 => 1,
-        _ => 10,
+    let start_q = {
+        let reduce_starting_values = |qs: Vec<u8>| -> Option<u8> {
+            let mut last_q = 0;
+            for q in qs {
+                let vmaf_score = run(q as f32).1;
+                let passed = terminate(vmaf_score);
+                if passed && q <= 10 {
+                    return Some(0);
+                }
+                if passed {
+                    return Some(last_q);
+                }
+                last_q = q;
+            }
+            None
+        };
+        let bad_fallback_low_range = || reduce_starting_values(vec![
+            10,
+            35,
+            65,
+            75,
+            85,
+        ]);
+        let bad_fallback = || reduce_starting_values(vec![
+            0,
+            10,
+            20,
+            30,
+            40,
+            50,
+            60,
+            70,
+            90,
+        ]);
+        // TODO:
+        match class.class {
+            Class::L0 | Class::L1 | Class::L2 => {
+                bad_fallback_low_range()
+            }
+            _ => bad_fallback()
+        }
     };
+    let start_q = start_q.unwrap_or(1) as u32;
     let mut last_q = None;
     let mut last_score = None;
     for q in start_q..100 {

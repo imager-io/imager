@@ -12,7 +12,7 @@ use std::os::raw::{c_char, c_int};
 use libc::{size_t, c_float, c_void};
 use serde::{Serialize, Deserialize};
 use itertools::Itertools;
-use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer};
+use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer, ImageFormat};
 use rayon::prelude::*;
 use webp_dev::sys::webp::{
     self as webp_sys,
@@ -30,7 +30,27 @@ use webp_dev::sys::webp::{
 pub enum OutputFormat {
     Jpeg,
     Png,
-    WebP,
+    Webp,
+}
+
+impl OutputFormat {
+    pub fn infer_from_file_container<P: AsRef<Path>>(path: P) -> Option<Self> {
+        let buffer = std::fs::read(path).ok()?;
+        let format = ::image::guess_format(&buffer).ok()?;
+        match format {
+            ImageFormat::JPEG => Some(OutputFormat::Jpeg),
+            ImageFormat::PNG => Some(OutputFormat::Png),
+            ImageFormat::WEBP => Some(OutputFormat::Webp),
+            _ => None
+        }
+    }
+    pub fn infer_from_path<P: AsRef<Path>>(path: P) -> Option<Self> {
+        let ext = path
+            .as_ref()
+            .extension()?
+            .to_str()?;
+        OutputFormat::from_str(ext).ok()
+    }
 }
 
 impl FromStr for OutputFormat {
@@ -40,7 +60,7 @@ impl FromStr for OutputFormat {
             "jpeg" => Ok(OutputFormat::Jpeg),
             "jpg" => Ok(OutputFormat::Jpeg),
             "png" => Ok(OutputFormat::Png),
-            "webp" => Ok(OutputFormat::Png),
+            "webp" => Ok(OutputFormat::Webp),
             _ => {
                 Err(format!("Unknown or unsupported output format {}", s))
             }
@@ -51,6 +71,39 @@ impl FromStr for OutputFormat {
 impl Default for OutputFormat {
     fn default() -> Self {
         OutputFormat::Jpeg
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct OutputFormats(pub Vec<OutputFormat>);
+
+impl Default for OutputFormats {
+    fn default() -> Self {
+        OutputFormats(vec![OutputFormat::Jpeg, OutputFormat::Webp])
+    }
+}
+
+impl FromStr for OutputFormats {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut invalids = Vec::new();
+        let results = s
+            .split_whitespace()
+            .filter_map(|x| {
+                match OutputFormat::from_str(x) {
+                    Ok(x) => Some(x),
+                    Err(e) => {
+                        invalids.push(e);
+                        None
+                    }
+                }
+            })
+            .collect::<Vec<_>>();
+        if invalids.is_empty() {
+            Ok(OutputFormats(results))
+        } else {
+            Err(invalids.join(", "))
+        }
     }
 }
 

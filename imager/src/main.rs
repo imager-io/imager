@@ -11,11 +11,44 @@ use serde::{Serialize, Deserialize};
 use structopt::StructOpt;
 use structopt::clap::ArgGroup;
 use indicatif::{ProgressBar, ProgressStyle};
-use imager::data::{
+
+use crate::data::{
     OutputFormat,
-    OutputSize,
+    OutputFormats,
     Resolution,
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// CLI FRONTEND - INTERNAL HELPER TYPES
+///////////////////////////////////////////////////////////////////////////////
+
+#[derive(Debug, Clone, PartialEq)]
+enum OutputType {
+    Dir(PathBuf),
+    File(PathBuf),
+    Replace,
+}
+
+impl OutputType {
+    pub fn is_dir(&self) -> bool {
+        match self {
+            OutputType::Dir(_) => true,
+            _ => false
+        }
+    }
+    pub fn is_file(&self) -> bool {
+        match self {
+            OutputType::File(_) => true,
+            _ => false
+        }
+    }
+    pub fn is_replace(&self) -> bool {
+        match self {
+            OutputType::Replace => true,
+            _ => false
+        }
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // CLI FRONTEND
@@ -24,7 +57,7 @@ use imager::data::{
 /// The Imager CLI Interface
 /// 
 /// Output type much be one of: `--output-file`, `--output-dir`, or `--replace`.
-#[derive(Debug, Clone, Serialize, Deserialize, StructOpt)]
+#[derive(Debug, Clone, StructOpt)]
 #[structopt(
     name = "imager",
     // rename_all = "kebab-case",
@@ -35,7 +68,7 @@ pub struct Command {
     #[structopt(short, long, required = true, min_values = 1)]
     inputs: Vec<String>,
     
-    /// Output file path.
+    /// Save the result to this file path.
     /// 
     /// Save the optimized file to this path.
     /// Only works for single input/output files.
@@ -47,10 +80,11 @@ pub struct Command {
     /// Dump results to this directory.
     /// Files will have the same name as the input file. 
     /// Valid for multiple input/output files.
-    #[structopt(long, parse(from_os_str), group = "output_type")]
+    #[structopt(short="O", long, parse(from_os_str), group = "output_type")]
     output_dir: Option<PathBuf>,
 
     /// Replace input files with their optimized results.
+    /// 
     /// Valid for multiple input/output files.
     #[structopt(long, group = "output_type")]
     replace: bool,
@@ -60,75 +94,116 @@ pub struct Command {
     /// Multiple output formats may be specified, e.g. `--formats webp jpeg`.
     /// The saved results will have their file extension updated if different
     /// from the original.
-    #[structopt(short, long, default_value = "jpeg")]
-    formats: Vec<OutputFormat>,
+    #[structopt(short, long, default_value = "jpeg webp")]
+    formats: Vec<OutputFormats>,
     
-    /// Output image size (resolution).
-    /// 
-    /// To target a specific resolution (say 100x100) use `--resize 100x100`.
-    /// This will always preserve aspect ratio and only downscales when necessary.
-    /// 
-    /// To preserve the original resolution use `--resize full`.
-    #[structopt(short, long)]
-    resize: Option<OutputSize>,
+    /// Resize or downscale images if their resolution exceeds the given size.
+    #[structopt(long)]
+    max_size: Option<Resolution>,
 }
 
 
-// impl Command {
-//     pub fn run(&self) {
-//         let inputs = self.input
-//             .clone()
-//             .into_iter()
-//             .filter_map(|x| glob::glob(&x).ok())
-//             .map(|x| x.collect::<Vec<_>>())
-//             .flatten()
-//             .filter_map(Result::ok)
-//             .collect::<Vec<_>>();
-//         let to_out_path_for = |input_path: &PathBuf| -> PathBuf {
-//             let filename = input_path
-//                 .file_name()
-//                 .expect("file name from path")
-//                 .to_str()
-//                 .expect("str path");
-//             let mut output_path = self.output.clone();
-//             std::fs::create_dir_all(&output_path)
-//                 .expect("create output dir if missing");
-//             output_path.push(&filename);
-//             match self.format {
-//                 OutputFormat::Jpeg => output_path.set_extension("jpeg")
-//             };
-//             output_path
-//         };
-//         if self.single {
-//             if inputs.len() > 1 {
-//                 panic!("The single flag is incompatible with multiple inputs.");
-//             }
-//         }
-//         let progress_bar = ProgressBar::new(inputs.len() as u64);
-//         progress_bar.tick();
-//         inputs
-//             .par_iter()
-//             .for_each(|input_path| {
-//                 let resize = self.size.clone();
-//                 let source = opt::Source::open(input_path, resize).expect("load source");
-//                 let (output, opt_meta) = source.run_search();
-//                 let output_path = if self.single {
-//                     self.output
-//                         .parent()
-//                         .map(|parent| {
-//                             std::fs::create_dir_all(parent)
-//                                 .expect("create missing parent directory");
-//                         });
-//                     self.output.clone()
-//                 } else {
-//                     to_out_path_for(input_path)
-//                 };
-//                 std::fs::write(&output_path, output).expect("write output file");
-//                 progress_bar.inc(1);
-//             });
-//         progress_bar.finish();
-//     }
-// }
+impl Command {
+    pub fn run(&self) {
+        let inputs = self.inputs
+            .clone()
+            .into_iter()
+            .filter_map(|x| glob::glob(&x).ok())
+            .map(|x| x.collect::<Vec<_>>())
+            .flatten()
+            .filter_map(Result::ok)
+            .collect::<Vec<_>>();
+        if inputs.len() > 1 && self.output_file.is_some() {
+            panic!("Output file isn’t valid for multiple input file paths, maybe use `--output-dir`?");
+        }
+        let output = match (self.output_file.clone(), self.output_dir.clone(), self.replace) {
+            (Some(x), None, false) => OutputType::File(x),
+            (None, Some(x), false) => OutputType::Dir(x),
+            (None, None, true) => OutputType::Replace,
+            _ => panic!("invalid output type")
+        };
+        if output.is_replace() {
+            eprintln!("[warning] replacing input files");
+            eprintln!("[note] imager only works for original images, i.e. your highest quality versions")
+        }
+        let entries = inputs
+            .clone()
+            .into_iter()
+            .flat_map(|input_path| {
+                self.formats
+                    .clone()
+                    .into_iter()
+                    .flat_map(|f| f.0)
+                    .map(|f| (input_path.clone(), f))
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        let progress_bar = ProgressBar::new(entries.len() as u64);
+        progress_bar.tick();
+        if entries.is_empty() {
+            eprintln!("[warning] no (or missing) input files given");
+        }
+        let entries_len = entries.len();
+        entries
+            .into_par_iter()
+            .for_each(|(input_path, output_format)| {
+                let mut opt_job = crate::api::OptJob::open(&input_path).expect("open input file path");
+                opt_job.output_format(output_format.clone());
+                if let Some(max_size) = self.max_size.clone() {
+                    opt_job.max_size(max_size);
+                }
+                let encoded = opt_job.run().expect("opt job failed");
+                let different_format = {
+                    OutputFormat::infer_from_path(&input_path)
+                        .map(|src| src != output_format.clone())
+                        .unwrap_or(true)
+                };
+                let file_name = input_path
+                    .file_name()
+                    .expect("file name")
+                    .to_str()
+                    .expect("OsStr to str");
+                let output_ext = match output_format {
+                    OutputFormat::Jpeg => "jpeg",
+                    OutputFormat::Png => "png",
+                    OutputFormat::Webp => "webp",
+                };
+                match output.clone() {
+                    OutputType::Dir(path) => {
+                        if !path.exists() {
+                            std::fs::create_dir_all(&path).expect("create parent dir");
+                        }
+                        let mut output_path = path.join(file_name);
+                        if different_format {
+                            output_path.set_extension(output_ext);
+                        }
+                        std::fs::write(output_path, encoded).expect("failed to write output file");
+                    }
+                    OutputType::File(mut output_path) => {
+                        let parent_dir = output_path
+                            .parent()
+                            .expect("get parent path");
+                        if !parent_dir.exists() {
+                            std::fs::create_dir_all(&parent_dir).expect("create parent dir");
+                        }
+                        if different_format {
+                            output_path.set_extension(output_ext);
+                        }
+                        std::fs::write(output_path, encoded).expect("failed to write output file");
+                    }
+                    OutputType::Replace => {
+                        let mut output_path = input_path.clone();
+                        if different_format {
+                            output_path.set_extension(output_ext);
+                        }
+                        std::fs::write(output_path, encoded).expect("failed to write output file");
+                    }
+                }
+                progress_bar.inc(1);
+            });
+        progress_bar.finish();
+    }
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -139,6 +214,5 @@ pub struct Command {
 
 fn main() {
     let cmd = Command::from_args();
-    println!("output: {:#?}", cmd);
-    // cmd.run();
+    cmd.run();
 }

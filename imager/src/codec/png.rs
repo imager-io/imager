@@ -109,7 +109,7 @@ pub fn basic_optimize(source: &DynamicImage) -> Vec<u8> {
             let vmaf_derivative = VideoBuffer::from_png(&compressed).expect("to VideoBuffer");
             vmaf::get_report(&vmaf_source, &vmaf_derivative)
         };
-        println!("vmaf: {}", report);
+        // println!("vmaf: {}", report);
         (compressed, report)
     };
     let fallback = || {
@@ -119,7 +119,7 @@ pub fn basic_optimize(source: &DynamicImage) -> Vec<u8> {
     };
     // RUN
     for num_colors in 1..256 {
-        println!("num_colors: {}", num_colors);
+        // println!("num_colors: {}", num_colors);
         let (compressed, report) = run(num_colors);
         if report >= 90.0 || num_colors <= 5 {
             return compressed;
