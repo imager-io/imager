@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "imager-cli",
-    "imager-server",
+    "cli",
+    "server",
 ]
 
