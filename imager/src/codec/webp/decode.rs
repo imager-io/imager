@@ -13,7 +13,7 @@ use webp_dev::sys::webp::{
 };
 
 
-pub fn decode(source: &Vec<u8>) -> DynamicImage {
+pub fn decode(source: &[u8]) -> DynamicImage {
     let mut width: i32 = 0;
     let mut height: i32 = 0;
     let decoded = unsafe {
