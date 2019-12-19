@@ -1,12 +1,11 @@
 # Imager Lib/CLI - Building From Source
 
-## Requirements
+## General Requirements
 
-* `make` build tool 
-* `cargo` build tool
-* `c/c++` compiler
-* `libclang`
-* `libc++` - The C++ standard library
+* make/cargo build tools
+* libclang
+* C/C++ Compiler (with c++ std lib)
+* tar with xz decompression
 
 ### Step 1. [Cargo](https://rustup.rs)
 
