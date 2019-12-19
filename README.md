@@ -14,11 +14,13 @@ compression.ai: ▇▇▇▇▇▇▇▇ 8.90M
 imager        : ▇▇▇▇ 4.20M
 ```
 
-# [Documentation](docs/imager)
-> Under `./docs/imager`.
+## Resources
 
-* [docs/imager/install.md](docs/imager/install.md)
+* [./imager/Dockerfile](imager/Dockerfile)
 
+### [Documentation](docs/imager)
+
+* [./docs/imager/install.md](docs/imager/install.md)
 
 <hr/>
 
