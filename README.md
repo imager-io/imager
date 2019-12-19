@@ -14,7 +14,8 @@ compression.ai: ▇▇▇▇▇▇▇▇ 8.90M
 imager        : ▇▇▇▇ 4.20M
 ```
 
-
+# [Documentation](docs/imager)
+See `./docs/imager`.
 
 
 
