@@ -15,8 +15,9 @@ imager        : ▇▇▇▇ 4.20M
 ```
 
 # [Documentation](docs/imager)
-See `./docs/imager`.
+> Under `./docs/imager`.
 
+* [docs/imager/install.md](docs/imager/install.md)
 
 
 <hr/>
