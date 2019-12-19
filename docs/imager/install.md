@@ -1,3 +1,33 @@
+# [GitHub (Prebuilt) Releases](https://github.com/imager-io/imager/releases)
+
+Pretty easy method.
+
+## E.g. MacOS Users
+
+Download & Extract:
+```shell
+$ http --follow https://github.com/imager-io/imager/releases/download/imager-v0.3/imager-v0.3.1-apple.tar.gz > imager-v0.3.1-apple.tar.gz
+$ tar -xvzf imager-v0.3.1-apple.tar.gz
+```
+Verify:
+```
+$ ./apple/bin/imager --help
+```
+
+## E.g. Linux Users
+
+Download & Extract:
+```shell
+$ http --follow https://github.com/imager-io/imager/releases/download/imager-v0.3/imager-v0.3.1-linux.tar.gz > imager-v0.3.1-linux.tar.gz
+$ tar -xvzf imager-v0.3.1-linux.tar.gz
+```
+
+Verify:
+```
+$ ./linux/bin/imager --help
+```
+
+
 # Imager Lib/CLI - Building From Source
 
 ## General Requirements
