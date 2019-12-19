@@ -1,31 +1,37 @@
-# # NOTE: Assumes the host is a mac (since we need to build mac binaries too).
-# set -e
+# NOTE: Assumes the host is a mac (since we need to build mac binaries too).
+set -e
 
-# # CHECK COMMIT
-# # GIT_RESULT=$(git status --porcelain)
-# # if [[ "$GIT_RESULT" != "" ]]
-# # then
-# #     echo "changed files needing to be committed"
-# #     exit 1
-# # fi
+# CURRENT VERSION
+IMAGER_VERSION=$(cargo metadata --format-version 1 | jq -r '.packages | map(select(.name=="imager")) | .[] | .version')
 
-# # BUILD LINUX
-# # ./scripts/docker/build.sh
+# CHECK COMMIT
+GIT_RESULT=$(git status --porcelain)
+if [[ "$GIT_RESULT" != "" ]]
+then
+    echo "changed files needing to be committed"
+    exit 1
+fi
 
-# # BUILD MACOS
-# mkdir -p release/macos
-# cargo install --force --root release/macos --path imager
-# rm release/macos/.crates.toml
+# TAG COMMIT
+git tag -a auto-release/imager/$IMAGER_VERSION -m "Imager Release"
+git push origin auto-release/imager/$IMAGER_VERSION
 
-# # CHECKS - LINUX
-# test -f release/linux/bin/imager || (echo "FAILED!"; exit 1)
-# test -f release/linux/bin/imager.sha1 || (echo "FAILED!"; exit 1)
 
-# # CHECKS - MACOS
-# test -f release/macos/bin/imager || (echo "FAILED!"; exit 1)
+# BUILD LINUX
+./scripts/docker/build.sh
 
-# # TEST
-# # npm test
+# BUILD APPLE
+mkdir -p release/apple
+cargo install --force --root release/apple --path .
+rm release/apple/.crates.toml
 
-# # PUBLISH
-# # npm publish
+# CHECKS - LINUX
+test -f release/linux/bin/imager || (echo "FAILED!"; exit 1)
+test -f release/linux/bin/imager.sha1 || (echo "FAILED!"; exit 1)
+
+# CHECKS - APPLE
+test -f release/apple/bin/imager || (echo "FAILED!"; exit 1)
+
+# COMPRESS
+tar -cvzf release/imager-v$IMAGER_VERSION-linux.tar.gz -C release linux
+tar -cvzf release/imager-v$IMAGER_VERSION-apple.tar.gz -C release apple

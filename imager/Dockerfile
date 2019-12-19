@@ -7,40 +7,47 @@ FROM rust:latest as build
 WORKDIR /code/
 RUN apt-get -y update && \
     apt-get -y upgrade && \
-    apt-get -y install build-essential software-properties-common curl git vim tree
-
+    apt-get -y install software-properties-common curl git vim tree
 
 # SYSTEM DEPENDENCIES
-RUN apt-get install -y llvm-dev libclang-dev clang openssl pkg-config libssl-dev
+RUN apt-get install -y \
+    build-essential \
+    llvm-dev \
+    libclang-dev \
+    clang \
+    openssl \
+    pkg-config \
+    libssl-dev \
+    xz-utils
 
 # BUILD PROJECT DEPENDENCIES FIRST
-RUN mkdir -p imager/src
-RUN echo 'fn main() {panic!("stub")}' > imager/src/main.rs
+RUN mkdir -p src
+RUN echo 'fn main() {panic!("stub")}' > src/main.rs
 ADD Cargo.toml .
-ADD imager/Cargo.toml imager/Cargo.toml
 RUN cargo build --release
+
+# ASSETS
+ADD assets/test assets/test
 
 # BUILD PROJECT CODE
 RUN rm target/release/deps/imager-*
-ADD imager/src imager/src
+ADD src src
 RUN cargo build --release
 
 # INSTALL
-RUN cargo install --force --path imager
+RUN cargo install --force --path .
 
 
 ###############################################################################
 # RUNTIME ENVIRONMENT
 ###############################################################################
-# FROM ubuntu:18.04 as runtime
+FROM ubuntu:18.04 as runtime
 
-# # SETUP
-# RUN apt-get -y update && \
-#     apt-get -y upgrade && \
-#     apt-get -y install build-essential software-properties-common curl git vim tree
-# COPY --from=build /usr/local/cargo/bin/imager /bin/imager
-# COPY --from=build /usr/local/cargo/bin/imager-server /bin/imager-server
+# SETUP
+RUN apt-get -y update && \
+    apt-get -y upgrade && \
+    apt-get -y install build-essential software-properties-common curl git vim tree
+COPY --from=build /usr/local/cargo/bin/imager /bin/imager
 
 # # SECURITY & SANITY CHECK
-# RUN sha1sum /bin/imager > /bin/imager.sha1
-# RUN sha1sum /bin/imager-server > /bin/imager-server.sha1
+RUN sha1sum /bin/imager > /bin/imager.sha1
