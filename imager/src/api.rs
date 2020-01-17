@@ -1,7 +1,8 @@
 use std::convert::AsRef;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use image::{DynamicImage, GenericImage, GenericImageView, ImageFormat};
 use either::{Either, Either::*};
+use serde::{Serialize, Deserialize};
 
 use crate::data::{Resolution, OutputFormat};
 use crate::codec::jpeg;
@@ -13,6 +14,14 @@ pub struct OptJob {
     source_format: ImageFormat,
     output_format: OutputFormat,
     max_size: Option<Resolution>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct OutMeda {
+    pub input_class: crate::classifier::Class,
+    pub input_path: Option<PathBuf>,
+    pub output_path: Option<PathBuf>,
+    pub vmaf_score: Option<f64>,
 }
 
 impl OptJob {
@@ -61,7 +70,7 @@ impl OptJob {
     pub fn max_size(&mut self, max_size: Resolution) {
         self.max_size = Some(max_size);
     }
-    pub fn run(self) -> Result<Vec<u8>, ()> {
+    pub fn run(self) -> Result<(Vec<u8>, OutMeda), ()> {
         let input = match self.max_size {
             Some(res) if (res.width, res.height) > self.source.dimensions() => {
                 self.source.resize(res.width, res.height, ::image::FilterType::Lanczos3)
@@ -70,13 +79,35 @@ impl OptJob {
         };
         match self.output_format {
             OutputFormat::Webp => {
-                Ok(webp::opt::opt(&input).0)
+                let (out, meta) = webp::opt::opt(&input);
+                let meta = OutMeda {
+                    input_class: meta.class,
+                    input_path: meta.input_path,
+                    output_path: meta.output_path,
+                    vmaf_score: None,
+                };
+                Ok((out, meta))
             }
             OutputFormat::Jpeg => {
-                Ok(jpeg::OptContext::from_image(input.clone()).run_search().0)
+                let (out, meta) = jpeg::OptContext::from_image(input.clone()).run_search();
+                let meta = OutMeda {
+                    input_class: meta.class,
+                    input_path: None,
+                    output_path: None,
+                    vmaf_score: meta.vmaf_score,
+                };
+                Ok((out, meta))
             }
             OutputFormat::Png => {
-                Ok(png::basic_optimize(&input))
+                let class_report = crate::classifier::report(&input);
+                let out = png::basic_optimize(&input);
+                let meta = OutMeda {
+                    input_class: class_report.class,
+                    input_path: None,
+                    output_path: None,
+                    vmaf_score: None,
+                };
+                Ok((out, meta))
             }
         }
     }

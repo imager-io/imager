@@ -123,6 +123,7 @@ pub struct OptReport {
     pub end_q: u8,
     pub passed: bool,
     pub class: Class,
+    pub vmaf_score: Option<f64>,
 }
 
 pub struct OptContext {
@@ -249,7 +250,7 @@ impl OptContext {
             _ => bad_fallback()
         }
     }
-    fn run_instance(&self, q: u8) -> (Vec<u8>, bool) {
+    fn run_instance(&self, q: u8) -> (Vec<u8>, bool, f64) {
         let compressed = unsafe {
             encode(&self.source, q)
         };
@@ -259,22 +260,23 @@ impl OptContext {
             vmaf::get_report(&self.vmaf_source, &vmaf_derivative)
         };
         if self.terminate(report) {
-            (compressed, true)
+            (compressed, true, report)
         } else {
-            (compressed, false)
+            (compressed, false, report)
         }
     }
     pub fn run_search(&self) -> (Vec<u8>, OptReport) {
         let mut passed_output: Option<(Vec<u8>, OptReport)> = None;
         let starting_q = self.find_starting_position().unwrap_or(0);
         for q in starting_q..=98 {
-            let (compressed, done) = self.run_instance(q);
+            let (compressed, done, score) = self.run_instance(q);
             if done {
                 let out_meta = OptReport {
                     start_q: starting_q,
                     end_q: q,
                     passed: true,
                     class: self.class_report.class.clone(),
+                    vmaf_score: Some(score),
                 };
                 passed_output = Some((compressed, out_meta));
                 break;
@@ -292,6 +294,7 @@ impl OptContext {
                     end_q: fallback_q,
                     passed: false,
                     class: self.class_report.class.clone(),
+                    vmaf_score: None,
                 };
                 (payload, out_meta)
             }
@@ -308,6 +311,7 @@ impl OptContext {
                         end_q: fallback_q,
                         passed: false,
                         class: self.class_report.class.clone(),
+                        vmaf_score: None,
                     };
                     (payload, out_meta)
                 }
