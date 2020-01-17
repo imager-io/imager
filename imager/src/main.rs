@@ -154,163 +154,80 @@ impl Command {
             eprintln!("[warning] no (or missing) input files given");
         }
         let entries_len = entries.len();
-        // PROCESS ENTRY
         let process = |input_path: PathBuf, output_format: OutputFormat| -> api::OutMeda {
             let mut opt_job = crate::api::OptJob::open(&input_path).expect("open input file path");
-                opt_job.output_format(output_format.clone());
-                if let Some(max_size) = self.max_size.clone() {
-                    opt_job.max_size(max_size);
-                }
-                let (encoded, mut out_meta) = opt_job.run(self.extreme).expect("opt job failed");
-                out_meta.input_path = Some(input_path.clone());
-                out_meta.output_path = None;
-                let different_format = {
-                    OutputFormat::infer_from_path(&input_path)
-                        .map(|src| src != output_format.clone())
-                        .unwrap_or(true)
-                };
-                let file_name = input_path
-                    .file_name()
-                    .expect("file name")
-                    .to_str()
-                    .expect("OsStr to str");
-                let output_ext = match output_format {
-                    OutputFormat::Jpeg => "jpeg",
-                    OutputFormat::Png => "png",
-                    OutputFormat::Webp => "webp",
-                };
-                match output.clone() {
-                    OutputType::Dir(path) => {
-                        if !path.exists() {
-                            std::fs::create_dir_all(&path).expect("create parent dir");
-                        }
-                        let mut output_path = path.join(file_name);
-                        if different_format {
-                            output_path.set_extension(output_ext);
-                        }
-                        out_meta.output_path = Some(output_path.clone());
-                        std::fs::write(output_path, encoded).expect("failed to write output file");
-                    }
-                    OutputType::File(mut output_path) => {
-                        let parent_dir = output_path
-                            .parent()
-                            .expect("get parent path");
-                        if !parent_dir.exists() {
-                            std::fs::create_dir_all(&parent_dir).expect("create parent dir");
-                        }
-                        if different_format {
-                            output_path.set_extension(output_ext);
-                        }
-                        out_meta.output_path = Some(output_path.clone());
-                        std::fs::write(output_path, encoded).expect("failed to write output file");
-                    }
-                    OutputType::Replace => {
-                        let mut output_path = input_path.clone();
-                        if different_format {
-                            output_path.set_extension(output_ext);
-                        }
-                        out_meta.output_path = Some(output_path.clone());
-                        std::fs::write(output_path, encoded).expect("failed to write output file");
-                    }
-                }
-                out_meta
-        };
-        let output_log = Arc::new(
-            Mutex::new(
-                (0usize, Vec::<api::OutMeda>::new())
-            )
-        );
-        let save_log = || {
-            let mut output_log = output_log
-                .as_ref()
-                .lock()
-                .expect("failed to lock vmaf work")
-                .clone();
-            let output_log = serde_json::to_string_pretty(&output_log.1)
-                .expect("to json str failed");
-            if let Some(log_path) = self.log_file.clone() {
-                std::fs::write(log_path, output_log);
+            opt_job.output_format(output_format.clone());
+            if let Some(max_size) = self.max_size.clone() {
+                opt_job.max_size(max_size);
             }
+            let (encoded, mut out_meta) = opt_job.run(self.extreme).expect("opt job failed");
+            out_meta.input_path = Some(input_path.clone());
+            out_meta.output_path = None;
+            let different_format = {
+                OutputFormat::infer_from_path(&input_path)
+                    .map(|src| src != output_format.clone())
+                    .unwrap_or(true)
+            };
+            let file_name = input_path
+                .file_name()
+                .expect("file name")
+                .to_str()
+                .expect("OsStr to str");
+            let output_ext = match output_format {
+                OutputFormat::Jpeg => "jpeg",
+                OutputFormat::Png => "png",
+                OutputFormat::Webp => "webp",
+            };
+            match output.clone() {
+                OutputType::Dir(path) => {
+                    if !path.exists() {
+                        std::fs::create_dir_all(&path).expect("create parent dir");
+                    }
+                    let mut output_path = path.join(file_name);
+                    if different_format {
+                        output_path.set_extension(output_ext);
+                    }
+                    out_meta.output_path = Some(output_path.clone());
+                    std::fs::write(output_path, encoded).expect("failed to write output file");
+                }
+                OutputType::File(mut output_path) => {
+                    let parent_dir = output_path
+                        .parent()
+                        .expect("get parent path");
+                    if !parent_dir.exists() {
+                        std::fs::create_dir_all(&parent_dir).expect("create parent dir");
+                    }
+                    if different_format {
+                        output_path.set_extension(output_ext);
+                    }
+                    out_meta.output_path = Some(output_path.clone());
+                    std::fs::write(output_path, encoded).expect("failed to write output file");
+                }
+                OutputType::Replace => {
+                    let mut output_path = input_path.clone();
+                    if different_format {
+                        output_path.set_extension(output_ext);
+                    }
+                    out_meta.output_path = Some(output_path.clone());
+                    std::fs::write(output_path, encoded).expect("failed to write output file");
+                }
+            }
+            out_meta
         };
-        entries
+        let output_log = entries
             .into_par_iter()
-            .for_each(|(input_path, output_format)| {
-                let mut opt_job = crate::api::OptJob::open(&input_path).expect("open input file path");
-                opt_job.output_format(output_format.clone());
-                if let Some(max_size) = self.max_size.clone() {
-                    opt_job.max_size(max_size);
-                }
-                let (encoded, mut out_meta) = opt_job.run(self.extreme).expect("opt job failed");
-                out_meta.input_path = Some(input_path.clone());
-                out_meta.output_path = None;
-                let different_format = {
-                    OutputFormat::infer_from_path(&input_path)
-                        .map(|src| src != output_format.clone())
-                        .unwrap_or(true)
-                };
-                let file_name = input_path
-                    .file_name()
-                    .expect("file name")
-                    .to_str()
-                    .expect("OsStr to str");
-                let output_ext = match output_format {
-                    OutputFormat::Jpeg => "jpeg",
-                    OutputFormat::Png => "png",
-                    OutputFormat::Webp => "webp",
-                };
-                match output.clone() {
-                    OutputType::Dir(path) => {
-                        if !path.exists() {
-                            std::fs::create_dir_all(&path).expect("create parent dir");
-                        }
-                        let mut output_path = path.join(file_name);
-                        if different_format {
-                            output_path.set_extension(output_ext);
-                        }
-                        out_meta.output_path = Some(output_path.clone());
-                        std::fs::write(output_path, encoded).expect("failed to write output file");
-                    }
-                    OutputType::File(mut output_path) => {
-                        let parent_dir = output_path
-                            .parent()
-                            .expect("get parent path");
-                        if !parent_dir.exists() {
-                            std::fs::create_dir_all(&parent_dir).expect("create parent dir");
-                        }
-                        if different_format {
-                            output_path.set_extension(output_ext);
-                        }
-                        out_meta.output_path = Some(output_path.clone());
-                        std::fs::write(output_path, encoded).expect("failed to write output file");
-                    }
-                    OutputType::Replace => {
-                        let mut output_path = input_path.clone();
-                        if different_format {
-                            output_path.set_extension(output_ext);
-                        }
-                        out_meta.output_path = Some(output_path.clone());
-                        std::fs::write(output_path, encoded).expect("failed to write output file");
-                    }
-                }
-                // METADATA
-                {
-                    let mut lock = output_log
-                        .as_ref()
-                        .lock()
-                        .expect("failed to lock vmaf work");
-                    lock.0 = lock.0 + 1;
-                    lock.1.push(out_meta);
-                    // MAYBE UPDATE LOG FILE
-                    if lock.0 >= 200 {
-                        save_log();
-                        lock.0 = 0;
-                    }
-                }
+            .map(|(input_path, output_format)| {
+                let out_meta = process(input_path, output_format);
                 // DONE
                 progress_bar.inc(1);
-            });
+                out_meta
+            })
+            .collect::<Vec<api::OutMeda>>();
         // SAVE LOG FILE
-        save_log();
+        if let Some(log_path) = self.log_file.clone() {
+            let output_log = serde_json::to_string_pretty(&output_log).expect("to json str failed");
+            std::fs::write(log_path, output_log);
+        }
         // DONE
         progress_bar.finish();
     }

@@ -161,15 +161,14 @@ impl OptContext {
             Class::L2 if self.class_report.white_backdrop => {
                 threshold = 93.0;
             }
+            Class::L0 | Class::L1 | Class::L2 if self.extreme_mode && is_big => {
+                threshold = 95.0;
+            }
             Class::L0 => {
                 threshold = 99.0;
             }
             Class::L1 => {
-                if self.extreme_mode {
-                    threshold = 96.0;
-                } else {
-                    threshold = 98.0;
-                }
+                threshold = 98.0;
             }
             Class::L2 => {
                 threshold = 96.0;
