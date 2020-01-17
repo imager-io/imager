@@ -198,6 +198,38 @@ impl<'de> Deserialize<'de> for OutputSize {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// MISC HELPERS
+///////////////////////////////////////////////////////////////////////////////
+
+pub fn ensure_even_reslution(source: &DynamicImage) -> DynamicImage {
+    let (width, height) = source.dimensions();
+    // ENSURE EVEN
+    let even_width = (width % 2) == 0;
+    let even_height = (height % 2) == 0;
+    if (!even_width) || (!even_height) {
+        let new_width = {
+            if !even_width {
+                width - 1
+            } else {
+                width
+            }
+        };
+        let new_height = {
+            if !even_height {
+                height - 1
+            } else {
+                height
+            }
+        };
+        let new_image = source
+            .clone()
+            .crop(0, 0, new_width, new_height);
+        new_image
+    } else {
+        source.clone()
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // INTERNAL HELPERS
@@ -229,9 +261,13 @@ pub fn open_dir_sorted_paths<P: AsRef<Path>>(path: P) -> Vec<PathBuf> {
 }
 
 unsafe fn convert_to_yuv_using_webp(source: &DynamicImage) -> Yuv420P {
+    // ENSURE IMAGE IS EVEN
+    let source = ensure_even_reslution(source);
     let (width, height) = source.dimensions();
+    // WEBP INVARIANTS
     assert!(width < webp_sys::WEBP_MAX_DIMENSION);
     assert!(height < webp_sys::WEBP_MAX_DIMENSION);
+    // INIT WEBP
     let mut picture: WebPPicture = unsafe {std::mem::zeroed()};
     unsafe {
         assert!(webp_sys::webp_picture_init(&mut picture) != 0);

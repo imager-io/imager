@@ -31,6 +31,7 @@ impl OptJob {
         match source_format {
             ImageFormat::WEBP => {
                 let source = webp::decode::decode(source);
+                let source = crate::data::ensure_even_reslution(&source);
                 Ok(OptJob {
                     output_format,
                     source,
@@ -40,10 +41,11 @@ impl OptJob {
             }
             _ => {
                 let source = ::image::load_from_memory_with_format(
-                    source,
-                    source_format,
-                )
-                .map_err(drop)?;
+                        source,
+                        source_format,
+                    )
+                    .map_err(drop)?;
+                let source = crate::data::ensure_even_reslution(&source);
                 Ok(OptJob {
                     output_format,
                     source,
