@@ -145,6 +145,9 @@ impl OptContext {
         let is_small = {
             (width * height) <= (500 * 500)
         };
+        let is_big = {
+            (width * height) >= (1200 * 1000)
+        };
         match self.class_report.class {
             Class::L0 if self.class_report.white_backdrop => {
                 threshold = 96.0;
@@ -159,7 +162,11 @@ impl OptContext {
                 threshold = 99.0;
             }
             Class::L1 => {
-                threshold = 98.0;
+                if is_big {
+                    threshold = 97.0;
+                } else {
+                    threshold = 98.0;
+                }
             }
             Class::L2 => {
                 threshold = 96.0;
