@@ -22,6 +22,7 @@ pub struct OutMeda {
     pub input_path: Option<PathBuf>,
     pub output_path: Option<PathBuf>,
     pub vmaf_score: Option<f64>,
+    pub extreme_mode: Option<bool>,
 }
 
 impl OptJob {
@@ -70,7 +71,7 @@ impl OptJob {
     pub fn max_size(&mut self, max_size: Resolution) {
         self.max_size = Some(max_size);
     }
-    pub fn run(self) -> Result<(Vec<u8>, OutMeda), ()> {
+    pub fn run(self, extreme_mode: bool) -> Result<(Vec<u8>, OutMeda), ()> {
         let input = match self.max_size {
             Some(res) if (res.width, res.height) > self.source.dimensions() => {
                 self.source.resize(res.width, res.height, ::image::FilterType::Lanczos3)
@@ -85,16 +86,19 @@ impl OptJob {
                     input_path: meta.input_path,
                     output_path: meta.output_path,
                     vmaf_score: None,
+                    extreme_mode: Some(extreme_mode),
                 };
                 Ok((out, meta))
             }
             OutputFormat::Jpeg => {
-                let (out, meta) = jpeg::OptContext::from_image(input.clone()).run_search();
+                let (out, meta) = jpeg::OptContext::from_image(input.clone())
+                    .run_search(extreme_mode);
                 let meta = OutMeda {
                     input_class: meta.class,
                     input_path: None,
                     output_path: None,
                     vmaf_score: meta.vmaf_score,
+                    extreme_mode: Some(extreme_mode),
                 };
                 Ok((out, meta))
             }
@@ -106,6 +110,7 @@ impl OptJob {
                     input_path: None,
                     output_path: None,
                     vmaf_score: None,
+                    extreme_mode: Some(extreme_mode),
                 };
                 Ok((out, meta))
             }
@@ -124,7 +129,7 @@ mod test {
             let mut opt_job = OptJob::new(test_image).expect("new opt job");
             opt_job.output_format(output_format);
             opt_job.max_size(Resolution::new(1000, 1000));
-            let result = opt_job.run();
+            let result = opt_job.run(false);
             assert!(result.is_ok());
         }
     }

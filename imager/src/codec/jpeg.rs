@@ -130,6 +130,7 @@ pub struct OptContext {
     source: DynamicImage,
     vmaf_source: VideoBuffer,
     class_report: classifier::Report,
+    extreme_mode: bool,
 }
 
 impl OptContext {
@@ -138,6 +139,7 @@ impl OptContext {
             vmaf_source: VideoBuffer::from_image(&source).expect("to VideoBuffer"),
             class_report: classifier::report(&source),
             source: source,
+            extreme_mode: false,
         }
     }
     fn terminate(&self, score: f64) -> bool {
@@ -163,8 +165,8 @@ impl OptContext {
                 threshold = 99.0;
             }
             Class::L1 => {
-                if is_big {
-                    threshold = 97.0;
+                if self.extreme_mode {
+                    threshold = 96.0;
                 } else {
                     threshold = 98.0;
                 }
@@ -265,7 +267,8 @@ impl OptContext {
             (compressed, false, report)
         }
     }
-    pub fn run_search(&self) -> (Vec<u8>, OptReport) {
+    pub fn run_search(&mut self, extreme_mode: bool) -> (Vec<u8>, OptReport) {
+        self.extreme_mode = extreme_mode;
         let mut passed_output: Option<(Vec<u8>, OptReport)> = None;
         let starting_q = self.find_starting_position().unwrap_or(0);
         for q in starting_q..=98 {
@@ -331,7 +334,7 @@ impl OptContext {
 pub fn run() {
     let input_path = "assets/samples/ceiling.jpeg";
     let source = ::image::open(input_path).expect("source image");
-    let (encoded, report) = OptContext::from_image(source).run_search();
+    let (encoded, report) = OptContext::from_image(source).run_search(false);
     println!("results: {:#?}", report);
     std::fs::write("assets/output/test.jpeg", encoded);
 }
