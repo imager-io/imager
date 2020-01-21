@@ -84,13 +84,6 @@ pub fn run() {
     use ndarray::prelude::*;
 
     let (t, f)  = (1.0, -1.0);
-    // static samples are easily generated with this macro!
-    // let train_samples = samples![
-    //     [f, f] => f, // ⊥ ∧ ⊥ → ⊥
-    //     [f, t] => t, // ⊥ ∧ ⊤ → ⊤
-    //     [t, f] => t, // ⊤ ∧ ⊥ → ⊤
-    //     [t, t] => t  // ⊤ ∧ ⊤ → ⊤
-    // ];
     let mut train_samples  = Vec::new();
 
     fn map_class(class: Class) -> Vec<f32> {
