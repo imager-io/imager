@@ -6,8 +6,8 @@ Pretty easy method.
 
 Download & Extract:
 ```shell
-$ http --follow https://github.com/imager-io/imager/releases/download/imager-v0.3/imager-v0.3.1-apple.tar.gz > imager-v0.3.1-apple.tar.gz
-$ tar -xvzf imager-v0.3.1-apple.tar.gz
+$ http --follow https://github.com/imager-io/imager/releases/download/imager-0.3.3/imager-v0.3.3-apple.tar.gz > imager-v0.3.3-apple.tar.gz
+$ tar -xvzf imager-v0.3.3-apple.tar.gz
 ```
 Verify:
 ```
@@ -18,8 +18,8 @@ $ ./apple/bin/imager --help
 
 Download & Extract:
 ```shell
-$ http --follow https://github.com/imager-io/imager/releases/download/imager-v0.3/imager-v0.3.1-linux.tar.gz > imager-v0.3.1-linux.tar.gz
-$ tar -xvzf imager-v0.3.1-linux.tar.gz
+$ http --follow https://github.com/imager-io/imager/releases/download/imager-0.3.3/imager-v0.3.3-linux.tar.gz > imager-v0.3.3-linux.tar.gz
+$ tar -xvzf imager-v0.3.3-linux.tar.gz
 ```
 
 Verify:
