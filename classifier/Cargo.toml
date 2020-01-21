@@ -1,0 +1,26 @@
+[package]
+name = "classifier"
+version = "0.1.0"
+authors = ["colbyn <hello@colbyn.com>"]
+edition = "2018"
+
+[dependencies]
+libc = "^0.2"
+imageproc = "0.19.2"
+image = "0.22.2"
+rand = "0.7.3"
+glob = "0.3.0"
+rayon = "1.3.0"
+mozjpeg-sys = "^0.10"
+itertools = "0.8.0"
+serde = {version = "^1.0", features = ["derive"]}
+serde_json = "^1.0"
+exoquant = "0.2.0"
+lodepng = "2.5.0"
+hsl-ish = "0.1.0"
+autograd = { version = "0.9.7", features = ["mkl"] }
+ndarray = "0.10"
+tch = "0.1.3"
+
+neuroflow = "0.1.3"
+prophet = "0.4.2"

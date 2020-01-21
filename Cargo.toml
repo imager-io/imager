@@ -6,4 +6,5 @@ members = [
 exclude = [
     "imager-video",
     "imager-server",
+    "classifier",
 ]
