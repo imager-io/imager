@@ -1,6 +1,6 @@
 [package]
 name = "imager"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["colbyn <hello@colbyn.com>"]
 edition = "2018"
 license = "MPL-2.0"
