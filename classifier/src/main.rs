@@ -3,5 +3,5 @@ pub mod process;
 pub mod color;
 
 fn main() {
-    // process::run();
+    process::run();
 }

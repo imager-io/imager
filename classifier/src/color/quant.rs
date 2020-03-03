@@ -8,6 +8,7 @@ use exoquant::optimizer::Optimizer;
 use exoquant::*;
 use lodepng::Bitmap;
 use lodepng::RGBA;
+use image::imageops::{FilterType};
 use image::{DynamicImage, GenericImage, GenericImageView};
 
 fn encode_indexed(palette: &[Color], image: &[u8], width: u32, height: u32) -> Vec<u8> {
@@ -87,6 +88,6 @@ pub fn compress(source: &DynamicImage, num_colors: usize) -> Result<Vec<u8>, Str
 
 pub fn reduce_palette(source: &DynamicImage, num_colors: usize) -> DynamicImage {
     let result = compress(source, num_colors).expect("failed to reduce color palette");
-    let result = ::image::load_from_memory_with_format(&result, ::image::ImageFormat::PNG).expect("decode png");
+    let result = ::image::load_from_memory_with_format(&result, ::image::ImageFormat::Png).expect("decode png");
     result
 }
