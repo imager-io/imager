@@ -16,13 +16,13 @@ use image::GrayImage;
 use rayon::prelude::*;
 use serde::{Serialize, Deserialize};
 
-use crate::debug::color_palette::{self, ToPrettyRgbPalette};
+use crate::color::palette::{self, ToPrettyRgbPalette};
 
 
 pub fn quantizer(image: &DynamicImage) -> DynamicImage {
     let image = image.resize_exact(600, 600, ::image::FilterType::Lanczos3);
     let image = image.unsharpen(1.2, 4);
-    let image = crate::quant::reduce_palette(&image, 64);
+    let image = crate::color::quant::reduce_palette(&image, 64);
     let image = image.to_luma();
     let image = ::imageproc::map::map_pixels(&image, |x, y, mut px| {
         if px.0[0] == 0 {
@@ -35,7 +35,7 @@ pub fn quantizer(image: &DynamicImage) -> DynamicImage {
         Connectivity::Eight,
         Luma::black()
     );
-    let image = color_palette::set_region(&image, Luma([std::u32::MAX]), |_, count| count > (120 * 120));
+    let image = palette::set_region(&image, Luma([std::u32::MAX]), |_, count| count > (120 * 120));
     
     // DONE
     let image = image.to_pretty_rgb_palette();
