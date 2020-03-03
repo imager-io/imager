@@ -133,118 +133,50 @@ pub fn train() {
 // MAIN
 ///////////////////////////////////////////////////////////////////////////////
 
-pub fn process(input_path: &str, output_path: &str, class: Class) {
-    // RUN
-    let image = ::image::open(input_path).expect("open source image");
-    let debug_image = preprocess(&image, class);
 
-    // FILE PATHS
-    let base_path = PathBuf::from(output_path)
-        .parent()
-        .expect("parent path")
-        .to_owned();
-    std::fs::create_dir_all(&base_path);
+// pub fn process(input_path: &str, output_path: &str, class: Class) {
+//     // RUN
+//     let image = ::image::open(input_path).expect("open source image");
+//     let debug_image = preprocess(&image, class);
+
+//     // FILE PATHS
+//     let base_path = PathBuf::from(output_path)
+//         .parent()
+//         .expect("parent path")
+//         .to_owned();
+//     std::fs::create_dir_all(&base_path);
     
-    let debug_output_path = {
-        let mut path = PathBuf::from(output_path)
-            .file_name()
-            .map(|x| PathBuf::from(x.clone()))
-            .expect("file name");
-        path.set_extension("debug.jpeg");
-        base_path.join(path)
-    };
+//     let debug_output_path = {
+//         let mut path = PathBuf::from(output_path)
+//             .file_name()
+//             .map(|x| PathBuf::from(x.clone()))
+//             .expect("file name");
+//         path.set_extension("debug.jpeg");
+//         base_path.join(path)
+//     };
 
-    // SAVE
-    // image.save(output_path);
-    debug_image.save(debug_output_path);
-    // let compressed = unsafe {
-    //     crate::codec::jpeg::encode(&image, 4)
-    // };
-    // std::fs::write(debug_output_path, compressed);
-}
+//     // SAVE
+//     // image.save(output_path);
+//     debug_image.save(debug_output_path);
+//     // let compressed = unsafe {
+//     //     crate::codec::jpeg::encode(&image, 4)
+//     // };
+//     // std::fs::write(debug_output_path, compressed);
+// }
 
 pub fn run() {
-    let extra_low1 = vec![
-        ("assets/samples/focus/extra-low/0000.jpeg", "assets/output/extra-low/0000.jpeg"),
-        ("assets/samples/focus/extra-low/7s-RwkZ.jpeg", "assets/output/extra-low/7s-RwkZ.jpeg"),
-        ("assets/samples/focus/extra-low/9w-10TO.jpeg", "assets/output/extra-low/9w-10TO.jpeg"),
-        ("assets/samples/focus/extra-low/NN4-OebzQ7N2R7.jpeg", "assets/output/extra-low/NN4-OebzQ7N2R7.jpeg"),
-        ("assets/samples/focus/extra-low/VNy-32PXbRWXlj.jpeg", "assets/output/extra-low/VNy-32PXbRWXlj.jpeg"),
-        ("assets/samples/focus/extra-low/nGY-9nAdDR0NVM.jpeg", "assets/output/extra-low/nGY-9nAdDR0NVM.jpeg"),
-        ("assets/samples/focus/extra-low/qW2-91VVN7mRD4.jpeg", "assets/output/extra-low/qW2-91VVN7mRD4.jpeg"),
-    ];
-    
-    let low_sources1 = vec![
-        ("assets/samples/focus/low/0003.jpeg", "assets/output/low/0003.jpeg"),
-        ("assets/samples/focus/low/0005.jpeg", "assets/output/low/0005.jpeg"),
-        ("assets/samples/focus/low/0041.jpeg", "assets/output/low/0041.jpeg"),
-        ("assets/samples/focus/low/04-RO1j.jpeg", "assets/output/low/04-RO1j.jpeg"),
-        ("assets/samples/focus/low/07-cIIF.jpeg", "assets/output/low/07-cIIF.jpeg"),
-        ("assets/samples/focus/low/5k-IoGP.jpeg", "assets/output/low/5k-IoGP.jpeg"),
-        ("assets/samples/focus/low/7J-7Tkf.jpeg", "assets/output/low/7J-7Tkf.jpeg"),
-        ("assets/samples/focus/low/7p-WH0J.jpeg", "assets/output/low/7p-WH0J.jpeg"),
-        ("assets/samples/focus/low/9X-hbpj.jpeg", "assets/output/low/9X-hbpj.jpeg"),
-        ("assets/samples/focus/low/AJ-pR2p.jpeg", "assets/output/low/AJ-pR2p.jpeg"),
-        ("assets/samples/focus/low/An-zDad.jpeg", "assets/output/low/An-zDad.jpeg"),
-        ("assets/samples/focus/low/Nr-2JdU.jpeg", "assets/output/low/Nr-2JdU.jpeg"),
-        ("assets/samples/focus/low/Uf-dIAI.jpeg", "assets/output/low/Uf-dIAI.jpeg"),
-        ("assets/samples/focus/low/aC-49dv.jpeg", "assets/output/low/aC-49dv.jpeg"),
-        ("assets/samples/focus/low/aO-j21N.jpeg", "assets/output/low/aO-j21N.jpeg"),
-        ("assets/samples/focus/low/cX-AEXN.png", "assets/output/low/cX-AEXN.png"),
-        ("assets/samples/focus/low/dO-J24k.jpeg", "assets/output/low/dO-J24k.jpeg"),
-        ("assets/samples/focus/low/dn-Gku1.jpeg", "assets/output/low/dn-Gku1.jpeg"),
-        ("assets/samples/focus/low/nd-G8ak.jpeg", "assets/output/low/nd-G8ak.jpeg"),
-    ];
-
-    let high_basic_sources1 = vec![
-        ("assets/samples/focus/high-basic/2o-e6ft.jpeg", "assets/output/high-basic/2o-e6ft.jpeg"),
-        ("assets/samples/focus/high-basic/Az-GMpY.jpeg", "assets/output/high-basic/Az-GMpY.jpeg"),
-        ("assets/samples/focus/high-basic/Cl-PBPF.jpeg", "assets/output/high-basic/Cl-PBPF.jpeg"),
-        ("assets/samples/focus/high-basic/Ju-7Bj3.jpeg", "assets/output/high-basic/Ju-7Bj3.jpeg"),
-        ("assets/samples/focus/high-basic/RQ-4jpi.jpeg", "assets/output/high-basic/RQ-4jpi.jpeg"),
-        ("assets/samples/focus/high-basic/sQ-hDXB.jpeg", "assets/output/high-basic/sQ-hDXB.jpeg"),
-        ("assets/samples/focus/high-basic/xM-AhIP.jpeg", "assets/output/high-basic/xM-AhIP.jpeg"),
-    ];
-
-    let high_basic_sources2 = vec![
-        ("assets/samples/focus/high-basic/5U-4oIc.jpeg", "assets/output/high-basic/5U-4oIc.jpeg"),
-    ];
-
-    let high1 = vec![
-        ("assets/samples/focus/high/0J-uIfz.jpeg", "assets/output/high/0J-uIfz.jpeg"),
-        ("assets/samples/focus/high/1s-93Jf.jpeg", "assets/output/high/1s-93Jf.jpeg"),
-        ("assets/samples/focus/high/2F-CESC.jpeg", "assets/output/high/2F-CESC.jpeg"),
-        ("assets/samples/focus/high/5W-7GcR.jpeg", "assets/output/high/5W-7GcR.jpeg"),
-        ("assets/samples/focus/high/6L-RcpD.jpeg", "assets/output/high/6L-RcpD.jpeg"),
-        ("assets/samples/focus/high/Aq-hR1z.jpeg", "assets/output/high/Aq-hR1z.jpeg"),
-        ("assets/samples/focus/high/CK-tgYJ.jpeg", "assets/output/high/CK-tgYJ.jpeg"),
-        ("assets/samples/focus/high/Dy-b6Y3.jpeg", "assets/output/high/Dy-b6Y3.jpeg"),
-        ("assets/samples/focus/high/QN-9ZmY.jpeg", "assets/output/high/QN-9ZmY.jpeg"),
-        ("assets/samples/focus/high/eH-vWUx.jpeg", "assets/output/high/eH-vWUx.jpeg"),
-        ("assets/samples/focus/high/ec-WIuG.jpeg", "assets/output/high/ec-WIuG.jpeg"),
-    ];
-
-    let high2: Vec<(&str, &str)> = vec![
-
-    ];
-
-    let f = move |xs: Vec<(&'static str, &'static str)>, class: Class| {
-        xs
-            .into_par_iter()
-            .map(|(s, d)| std::thread::spawn({
-                let class = class.clone();
-                move || process(s, d, class)
-            }))
-            .collect::<Vec<_>>()
-            .into_iter()
-            .for_each(|x| {
-                x.join();
-            });
-    };
-
-
-    f(high_basic_sources1, Class::HiBasic);
-    f(extra_low1, Class::ExLo);
-    f(high1, Class::Hi);
-    f(low_sources1, Class::Lo);
+    // let output_path = PathBuf::from("assets/output");
+    // let paths = glob::glob("assets/samples/focus/**/*.jpeg")
+    //     .expect("input glob")
+    //     .filter_map(Result::ok)
+    //     .map(|input_path| {
+    //         let output_path = input_path
+    //             .file_name()
+    //             .map(|name| {
+    //                 output_path.join(name)
+    //             })
+    //             .expect("init output file name");
+    //         println!("path: {:?}", output_path);
+    //     });
 }
+
