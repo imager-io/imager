@@ -45,7 +45,7 @@ pub fn compress(source: &DynamicImage, num_colors: usize) -> Result<Vec<u8>, Str
     let (ditherer, optimizer) = {
         // VALUES
         let d = ditherer::None;
-        let o = optimizer::WeightedKMeans;
+        let o = optimizer::KMeans;
         // DONE
         let d: Box<dyn ditherer::Ditherer> = Box::new(d);
         let o: Box<dyn Optimizer> = Box::new(o);
@@ -62,13 +62,13 @@ pub fn compress(source: &DynamicImage, num_colors: usize) -> Result<Vec<u8>, Str
     for _ in 0..num_colors {
         quantizer.step();
         if quantizer.num_colors() % kmeans_step == 0 {
-            quantizer = quantizer.optimize(&*optimizer, 2);
+            quantizer = quantizer.optimize(&*optimizer, 4);
         }
         // quantizer = quantizer.optimize(&*optimizer, 16);
     }
     // PALETTE DATA
     let palette = quantizer.colors(&colorspace);
-    let palette = optimizer.optimize_palette(&colorspace, &palette, &histogram, 8);
+    let palette = optimizer.optimize_palette(&colorspace, &palette, &histogram, 16);
     let remapper = Remapper::new(&palette, &colorspace, &*ditherer);
     // PIXEL DATA
     let out_data: Vec<u8> = remapper
