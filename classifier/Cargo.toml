@@ -18,3 +18,7 @@ serde_json = "^1.0"
 exoquant = "0.2.0"
 lodepng = "2.5.0"
 hsl-ish = "0.1.0"
+av-metrics = { version = "0.4", features = ["serde"] }
+y4m = "0.5"
+dcv-color-primitives = "0.1.4"
+lazy_static = "1.4.0"
