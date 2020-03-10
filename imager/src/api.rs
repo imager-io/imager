@@ -73,7 +73,7 @@ impl OptJob {
     }
     pub fn run(self, extreme_mode: bool) -> Result<(Vec<u8>, OutMeda), ()> {
         let input = match self.max_size {
-            Some(res) if (res.width, res.height) > self.source.dimensions() => {
+            Some(res) if (res.width, res.height) < self.source.dimensions() => {
                 self.source.resize(res.width, res.height, ::image::FilterType::Lanczos3)
             },
             _ => self.source.clone(),
