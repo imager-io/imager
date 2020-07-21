@@ -1,5 +1,6 @@
 # Imager
-> Apparently this project made it into the GitHub Archive Program.
+
+<small>Apparently this project made it into the GitHub Archive Program.</small>
 
 ## About
 
