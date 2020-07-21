@@ -1,4 +1,5 @@
 # Imager
+> Apparently this project made it into the GitHub Archive Program.
 
 ## About
 
@@ -24,4 +25,4 @@ imager        : ▇▇▇▇ 4.20M
 
 <hr/>
 
-Copyright 2019 Colbyn Wadman
+Copyright 2020 Colbyn Wadman
