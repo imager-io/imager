@@ -1,24 +1,20 @@
 #![allow(unused)]
+pub mod api;
 pub mod classifier;
 pub mod codec;
-pub mod vmaf;
 pub mod data;
-pub mod api;
+pub mod vmaf;
 
-use std::sync::{Arc, Mutex};
-use std::path::PathBuf;
-use rayon::prelude::*;
-use serde::{Serialize, Deserialize};
-use structopt::StructOpt;
-use structopt::clap::ArgGroup;
 use indicatif::{ProgressBar, ProgressStyle};
 use itertools::Itertools;
+use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
+use structopt::clap::ArgGroup;
+use structopt::StructOpt;
 
-use crate::data::{
-    OutputFormat,
-    OutputFormats,
-    Resolution,
-};
+use crate::data::{OutputFormat, OutputFormats, Resolution};
 
 ///////////////////////////////////////////////////////////////////////////////
 // CLI FRONTEND - INTERNAL HELPER TYPES
@@ -35,19 +31,19 @@ impl OutputType {
     pub fn is_dir(&self) -> bool {
         match self {
             OutputType::Dir(_) => true,
-            _ => false
+            _ => false,
         }
     }
     pub fn is_file(&self) -> bool {
         match self {
             OutputType::File(_) => true,
-            _ => false
+            _ => false,
         }
     }
     pub fn is_replace(&self) -> bool {
         match self {
             OutputType::Replace => true,
-            _ => false
+            _ => false,
         }
     }
 }
@@ -57,7 +53,7 @@ impl OutputType {
 ///////////////////////////////////////////////////////////////////////////////
 
 /// The Imager CLI Interface
-/// 
+///
 /// Output type much be one of: `--output-file`, `--output-dir`, or `--replace`.
 #[derive(Debug, Clone, StructOpt)]
 #[structopt(
@@ -69,36 +65,36 @@ pub struct Command {
     /// Input file(s) path.
     #[structopt(short, long, required = true, min_values = 1)]
     inputs: Vec<String>,
-    
+
     /// Save the result to this file path.
-    /// 
+    ///
     /// Save the optimized file to this path.
     /// Only works for single input/output files.
-    #[structopt(short="o", long, parse(from_os_str), group = "output_type")]
+    #[structopt(short = "o", long, parse(from_os_str), group = "output_type")]
     output_file: Option<PathBuf>,
 
     /// Save results under this directory.
-    /// 
+    ///
     /// Dump results to this directory.
-    /// Files will have the same name as the input file. 
+    /// Files will have the same name as the input file.
     /// Valid for multiple input/output files.
-    #[structopt(short="O", long, parse(from_os_str), group = "output_type")]
+    #[structopt(short = "O", long, parse(from_os_str), group = "output_type")]
     output_dir: Option<PathBuf>,
 
     /// Replace input files with their optimized results.
-    /// 
+    ///
     /// Valid for multiple input/output files.
     #[structopt(long, group = "output_type")]
     replace: bool,
-    
+
     /// Output format(s).
-    /// 
+    ///
     /// Multiple output formats may be specified, e.g. `--formats webp jpeg`.
     /// The saved results will have their file extension updated if different
     /// from the original.
     #[structopt(short, long, default_value = "jpeg webp")]
     formats: Vec<OutputFormats>,
-    
+
     /// Resize or downscale images if their resolution exceeds the given size.
     #[structopt(long)]
     max_size: Option<Resolution>,
@@ -112,10 +108,10 @@ pub struct Command {
     extreme: bool,
 }
 
-
 impl Command {
     pub fn run(&self) {
-        let inputs = self.inputs
+        let inputs = self
+            .inputs
             .clone()
             .into_iter()
             .filter_map(|x| glob::glob(&x).ok())
@@ -124,17 +120,25 @@ impl Command {
             .filter_map(Result::ok)
             .collect::<Vec<_>>();
         if inputs.len() > 1 && self.output_file.is_some() {
-            panic!("Output file isn’t valid for multiple input file paths, maybe use `--output-dir`?");
+            panic!(
+                "Output file isn’t valid for multiple input file paths, maybe use `--output-dir`?"
+            );
         }
-        let output = match (self.output_file.clone(), self.output_dir.clone(), self.replace) {
+        let output = match (
+            self.output_file.clone(),
+            self.output_dir.clone(),
+            self.replace,
+        ) {
             (Some(x), None, false) => OutputType::File(x),
             (None, Some(x), false) => OutputType::Dir(x),
             (None, None, true) => OutputType::Replace,
-            _ => panic!("invalid output type")
+            _ => panic!("invalid output type"),
         };
         if output.is_replace() {
             eprintln!("[warning] replacing input files");
-            eprintln!("[note] imager only works for original images, i.e. your highest quality versions")
+            eprintln!(
+                "[note] imager only works for original images, i.e. your highest quality versions"
+            )
         }
         let entries = inputs
             .clone()
@@ -191,9 +195,7 @@ impl Command {
                     std::fs::write(output_path, encoded).expect("failed to write output file");
                 }
                 OutputType::File(mut output_path) => {
-                    let parent_dir = output_path
-                        .parent()
-                        .expect("get parent path");
+                    let parent_dir = output_path.parent().expect("get parent path");
                     if !parent_dir.exists() {
                         std::fs::create_dir_all(&parent_dir).expect("create parent dir");
                     }
@@ -233,12 +235,9 @@ impl Command {
     }
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // MAIN
 ///////////////////////////////////////////////////////////////////////////////
-
-
 
 fn main() {
     let cmd = Command::from_args();

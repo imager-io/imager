@@ -1,17 +1,11 @@
-use std::ffi::{CString, c_void};
-use std::os::raw::{c_char, c_int};
-use libc::{size_t, c_float};
 use image::{DynamicImage, GenericImage, GenericImageView};
-use webp_dev::sys::webp::{
-    self as webp_sys,
-    WebPConfig,
-    WebPPicture,
-    WebPMemoryWriter,
-};
-
+use libc::{c_float, size_t};
+use std::ffi::{c_void, CString};
+use std::os::raw::{c_char, c_int};
+use webp_dev::sys::webp::{self as webp_sys, WebPConfig, WebPMemoryWriter, WebPPicture};
 
 pub fn init_config() -> WebPConfig {
-    let mut config: WebPConfig = unsafe {std::mem::zeroed()};
+    let mut config: WebPConfig = unsafe { std::mem::zeroed() };
     unsafe {
         webp_sys::webp_config_init(&mut config);
         webp_sys::webp_validate_config(&mut config);
@@ -26,7 +20,7 @@ pub fn init_picture(source: &DynamicImage) -> (WebPPicture, *mut WebPMemoryWrite
     let (width, height) = source.dimensions();
     assert!(width < webp_sys::WEBP_MAX_DIMENSION);
     assert!(height < webp_sys::WEBP_MAX_DIMENSION);
-    let mut picture: WebPPicture = unsafe {std::mem::zeroed()};
+    let mut picture: WebPPicture = unsafe { std::mem::zeroed() };
     unsafe {
         assert!(webp_sys::webp_picture_init(&mut picture) != 0);
     };
@@ -88,9 +82,8 @@ pub fn encode(source: &DynamicImage) -> Vec<u8> {
     };
     // COPY OUTPUT
     let mut writer = unsafe { Box::from_raw(writer_ptr) };
-    let mut output: Vec<u8> = unsafe {
-        std::slice::from_raw_parts_mut(writer.mem, writer.size).to_vec()
-    };
+    let mut output: Vec<u8> =
+        unsafe { std::slice::from_raw_parts_mut(writer.mem, writer.size).to_vec() };
     // CLEANUP PICTURE & WRITER
     unsafe {
         webp_sys::webp_picture_free(&mut picture);

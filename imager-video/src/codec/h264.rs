@@ -1,21 +1,19 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
+use itertools::Itertools;
+use libc::{c_float, c_void, fread, size_t};
+use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, HashMap, VecDeque};
 use std::convert::AsRef;
-use std::path::{PathBuf, Path};
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
-use std::collections::{VecDeque, HashMap, BTreeMap};
-use libc::{size_t, c_float, c_void, fread};
-use rayon::prelude::*;
+use std::path::{Path, PathBuf};
 use x264_dev::{raw, sys};
-use itertools::Itertools;
-use serde::{Serialize, Deserialize};
 
-use crate::data::{Yuv420P, VideoBuffer};
+use crate::data::{VideoBuffer, Yuv420P};
 use crate::tool::classifier::{self, Class};
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // DATA TYPES
@@ -33,21 +31,16 @@ pub enum Mode {
 
 pub fn pretty_float(x: f64) -> String {
     let x = format!("{}", x);
-    let x = x
-        .split(".")
-        .collect::<Vec<_>>();
+    let x = x.split(".").collect::<Vec<_>>();
     match x[..] {
-        [x, y] => {
-            x.to_owned()
-        }
-        _ => panic!()
+        [x, y] => x.to_owned(),
+        _ => panic!(),
     }
 }
 
 fn c_str(s: &str) -> CString {
     CString::new(s).expect("str to c str")
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // GLOBAL SETTINGS
@@ -69,7 +62,7 @@ unsafe fn apply(param: &mut sys::X264ParamT, key: &str, value: &str) {
 
 unsafe fn new_param(width: u32, height: u32) -> sys::X264ParamT {
     // INIT PARAM
-    let mut param: sys::X264ParamT = unsafe {std::mem::zeroed()};
+    let mut param: sys::X264ParamT = unsafe { std::mem::zeroed() };
     let profile = CString::new("high").expect("CString failed");
     let tune = {
         let opt1 = "film";
@@ -86,17 +79,13 @@ unsafe fn new_param(width: u32, height: u32) -> sys::X264ParamT {
             } else {
                 CString::new("medium").expect("CString failed")
             }
-        },
+        }
         Mode::Speed => CString::new("ultrafast").expect("CString failed"),
     };
-    assert!(sys::x264_param_default_preset(
-        &mut param,
-        preset.as_ptr(),
-        tune.as_ptr(),
-    ) == 0);
+    assert!(sys::x264_param_default_preset(&mut param, preset.as_ptr(), tune.as_ptr(),) == 0);
     param.i_bitdepth = 8;
     param.i_csp = raw::X264_CSP_I420 as i32;
-    param.i_width  = width as i32;
+    param.i_width = width as i32;
     param.i_height = height as i32;
     param.b_vfr_input = 0;
     param.b_repeat_headers = 1;
@@ -162,7 +151,6 @@ pub struct FrameReport {
     crf: u8,
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // LOW-LEVEL ENCODER
 ///////////////////////////////////////////////////////////////////////////////
@@ -186,12 +174,8 @@ pub unsafe fn encode(stream: &VideoBuffer, crf: f32) -> Result<Vec<u8>, String> 
     let mut picture: sys::X264PictureT = std::mem::zeroed();
     let mut picture_output: sys::X264PictureT = std::mem::zeroed();
     {
-        let status = sys::x264_picture_alloc(
-            &mut picture,
-            param.i_csp,
-            param.i_width,
-            param.i_height
-        );
+        let status =
+            sys::x264_picture_alloc(&mut picture, param.i_csp, param.i_width, param.i_height);
         assert!(status == 0);
     };
     ///////////////////////////////////////////////////////////////////////////
@@ -218,11 +202,13 @@ pub unsafe fn encode(stream: &VideoBuffer, crf: f32) -> Result<Vec<u8>, String> 
     // GO!
     ///////////////////////////////////////////////////////////////////////////
     for source in stream.as_frames() {
-        let (mut y_ptr, mut u_ptr, mut v_ptr) = unsafe {(
-            std::slice::from_raw_parts_mut(picture.img.plane[0], luma_size as usize),
-            std::slice::from_raw_parts_mut(picture.img.plane[1], chroma_size as usize),
-            std::slice::from_raw_parts_mut(picture.img.plane[2], chroma_size as usize),
-        )};
+        let (mut y_ptr, mut u_ptr, mut v_ptr) = unsafe {
+            (
+                std::slice::from_raw_parts_mut(picture.img.plane[0], luma_size as usize),
+                std::slice::from_raw_parts_mut(picture.img.plane[1], chroma_size as usize),
+                std::slice::from_raw_parts_mut(picture.img.plane[2], chroma_size as usize),
+            )
+        };
         y_ptr.copy_from_slice(&source.y());
         u_ptr.copy_from_slice(&source.u());
         v_ptr.copy_from_slice(&source.v());
@@ -238,10 +224,7 @@ pub unsafe fn encode(stream: &VideoBuffer, crf: f32) -> Result<Vec<u8>, String> 
         );
         assert!(i_frame_size >= 0);
         if i_frame_size > 0 {
-            let encoded = std::slice::from_raw_parts(
-                (*p_nal).p_payload,
-                i_frame_size as usize,
-            );
+            let encoded = std::slice::from_raw_parts((*p_nal).p_payload, i_frame_size as usize);
             output.extend_from_slice(encoded);
         }
     }
@@ -258,10 +241,7 @@ pub unsafe fn encode(stream: &VideoBuffer, crf: f32) -> Result<Vec<u8>, String> 
         );
         assert!(i_frame_size >= 0);
         if i_frame_size > 0 {
-            let encoded = std::slice::from_raw_parts(
-                (*p_nal).p_payload,
-                i_frame_size as usize,
-            );
+            let encoded = std::slice::from_raw_parts((*p_nal).p_payload, i_frame_size as usize);
             output.extend_from_slice(encoded);
         }
     }
@@ -279,7 +259,6 @@ pub unsafe fn encode(stream: &VideoBuffer, crf: f32) -> Result<Vec<u8>, String> 
 ///////////////////////////////////////////////////////////////////////////////
 // DEV - PICTURE OPT
 ///////////////////////////////////////////////////////////////////////////////
-
 
 pub unsafe fn opt_frame(index: usize, source: Yuv420P) -> (Vec<u8>, FrameReport) {
     let class_report = classifier::get_report(&source.to_rgba_image());
@@ -331,26 +310,21 @@ pub unsafe fn opt_frame(index: usize, source: Yuv420P) -> (Vec<u8>, FrameReport)
             }
             result
         };
-        let bad_fallback = || reduce_starting_values(vec![
-            10,
-            30,
-            50,
-            60,
-        ]);
+        let bad_fallback = || reduce_starting_values(vec![10, 30, 50, 60]);
         match class_report.class {
             // TODO
             // ...
-            _ => bad_fallback()
+            _ => bad_fallback(),
         }
     };
     let start_pos = starting_pos().unwrap_or(0);
-    for crf in (0 .. start_pos).rev().filter(|x| x % 2 == 0) {
+    for crf in (0..start_pos).rev().filter(|x| x % 2 == 0) {
         let encoded = encode(&source_video, crf as f32).expect("encode yuv420p");
         let ref_video = VideoBuffer::load_from_memory(&encoded).expect("reconstruct");
         let vmaf_report = crate::tool::vmaf::get_report(&source_video, &ref_video);
         if term(vmaf_report) {
             // return (crf, vmaf_report, class_report.class.clone(), encoded);
-            let meta = FrameReport{
+            let meta = FrameReport {
                 index,
                 vmaf: vmaf_report,
                 class: class_report.class.clone(),
@@ -373,15 +347,13 @@ pub fn opt_frames(stream: &VideoBuffer) -> BTreeMap<usize, FrameReport> {
         .collect::<Vec<_>>()
         .into_par_iter()
         .map(|(index, source)| {
-            let (frame, frame_meta) = unsafe {
-                opt_frame(index, source.clone())
-            };
+            let (frame, frame_meta) = unsafe { opt_frame(index, source.clone()) };
             let path = format!(
                 "assets/output/debug/ix={ix}--q={qp}--vmaf={vmaf}--cls={cls}.h264",
-                ix=frame_meta.index,
-                qp=frame_meta.crf,
-                cls=frame_meta.class,
-                vmaf=pretty_float(frame_meta.vmaf),
+                ix = frame_meta.index,
+                qp = frame_meta.crf,
+                cls = frame_meta.class,
+                vmaf = pretty_float(frame_meta.vmaf),
             );
             std::fs::write(path, frame);
             println!("opt frame: {}", index);
@@ -419,12 +391,8 @@ pub unsafe fn opt_video(stream: &VideoBuffer) -> Result<Vec<u8>, ()> {
     let mut picture: sys::X264PictureT = std::mem::zeroed();
     let mut picture_output: sys::X264PictureT = std::mem::zeroed();
     {
-        let status = sys::x264_picture_alloc(
-            &mut picture,
-            param.i_csp,
-            param.i_width,
-            param.i_height
-        );
+        let status =
+            sys::x264_picture_alloc(&mut picture, param.i_csp, param.i_width, param.i_height);
         assert!(status == 0);
     };
     ///////////////////////////////////////////////////////////////////////////
@@ -453,11 +421,13 @@ pub unsafe fn opt_video(stream: &VideoBuffer) -> Result<Vec<u8>, ()> {
     let mut frames_meta = Vec::<FrameReport>::new();
     for (index, source) in stream.as_frames().iter().enumerate() {
         // BUFFER
-        let (mut y_ptr, mut u_ptr, mut v_ptr) = unsafe {(
-            std::slice::from_raw_parts_mut(picture.img.plane[0], luma_size as usize),
-            std::slice::from_raw_parts_mut(picture.img.plane[1], chroma_size as usize),
-            std::slice::from_raw_parts_mut(picture.img.plane[2], chroma_size as usize),
-        )};
+        let (mut y_ptr, mut u_ptr, mut v_ptr) = unsafe {
+            (
+                std::slice::from_raw_parts_mut(picture.img.plane[0], luma_size as usize),
+                std::slice::from_raw_parts_mut(picture.img.plane[1], chroma_size as usize),
+                std::slice::from_raw_parts_mut(picture.img.plane[2], chroma_size as usize),
+            )
+        };
         y_ptr.copy_from_slice(&source.y());
         u_ptr.copy_from_slice(&source.u());
         v_ptr.copy_from_slice(&source.v());
@@ -474,10 +444,7 @@ pub unsafe fn opt_video(stream: &VideoBuffer) -> Result<Vec<u8>, ()> {
             // );
             // std::fs::write(path, frame);
             // frame_meta.crf
-            frames_report
-                .get(&index)
-                .expect("missing frame report")
-                .crf
+            frames_report.get(&index).expect("missing frame report").crf
         };
         apply(&mut picture_param, "crf", &format!("{}", crf));
         // ENCODE
@@ -490,10 +457,7 @@ pub unsafe fn opt_video(stream: &VideoBuffer) -> Result<Vec<u8>, ()> {
         );
         assert!(i_frame_size >= 0);
         if i_frame_size > 0 {
-            let encoded = std::slice::from_raw_parts(
-                (*p_nal).p_payload,
-                i_frame_size as usize,
-            );
+            let encoded = std::slice::from_raw_parts((*p_nal).p_payload, i_frame_size as usize);
             output.extend_from_slice(encoded);
         }
         // MISC
@@ -519,10 +483,7 @@ pub unsafe fn opt_video(stream: &VideoBuffer) -> Result<Vec<u8>, ()> {
         );
         assert!(i_frame_size >= 0);
         if i_frame_size > 0 {
-            let encoded = std::slice::from_raw_parts(
-                (*p_nal).p_payload,
-                i_frame_size as usize,
-            );
+            let encoded = std::slice::from_raw_parts((*p_nal).p_payload, i_frame_size as usize);
             output.extend_from_slice(encoded);
         }
     }
@@ -542,11 +503,8 @@ pub unsafe fn opt_video(stream: &VideoBuffer) -> Result<Vec<u8>, ()> {
 ///////////////////////////////////////////////////////////////////////////////
 
 pub fn run() {
-    let source = VideoBuffer::open_video("assets/samples/dump2.h264")
-        .expect("decode video file");
-    let output = unsafe {
-        opt_video(&source).expect("opt encode faild")
-    };
+    let source = VideoBuffer::open_video("assets/samples/dump2.h264").expect("decode video file");
+    let output = unsafe { opt_video(&source).expect("opt encode faild") };
     std::fs::write("assets/output/test.h264", &output);
 }
 

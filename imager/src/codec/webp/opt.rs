@@ -1,12 +1,12 @@
-use std::path::PathBuf;
-use itertools::Itertools;
-use serde::{Serialize, Deserialize};
-use rayon::prelude::*;
-use image::{DynamicImage, GenericImage, GenericImageView};
-use crate::data::{VideoBuffer, Yuv420P};
 use crate::classifier::{self, Class};
+use crate::codec::webp::encode::lossy::encode;
+use crate::data::{VideoBuffer, Yuv420P};
 use crate::vmaf;
-use crate::codec::webp::encode::lossy::{encode};
+use image::{DynamicImage, GenericImage, GenericImageView};
+use itertools::Itertools;
+use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OutMeta {
@@ -20,14 +20,13 @@ pub struct OutMeta {
 
 pub fn opt(source: &DynamicImage) -> (Vec<u8>, OutMeta) {
     let class = classifier::report(source);
-    let vmaf_source = VideoBuffer::from_image(source)
-        .expect("image to yuv frame");
+    let vmaf_source = VideoBuffer::from_image(source).expect("image to yuv frame");
     let run = |q: f32| -> (Vec<u8>, f64) {
         let compressed = encode(source, q);
         let score = {
             let vmaf_derivative = crate::codec::webp::decode::decode(&compressed);
-            let vmaf_derivative = VideoBuffer::from_image(&vmaf_derivative)
-                .expect("image to yuv frame");
+            let vmaf_derivative =
+                VideoBuffer::from_image(&vmaf_derivative).expect("image to yuv frame");
             vmaf::get_report(&vmaf_source, &vmaf_derivative)
         };
         (compressed, score)
@@ -46,9 +45,7 @@ pub fn opt(source: &DynamicImage) -> (Vec<u8>, OutMeta) {
     };
     let terminate = |score: f64| {
         let (width, height) = source.dimensions();
-        let is_small = {
-            (width * height) < (600 * 600)
-        };
+        let is_small = { (width * height) < (600 * 600) };
         let mut threshold;
         match class.class {
             Class::L0 | Class::L1 | Class::L2 if is_small => {
@@ -93,30 +90,12 @@ pub fn opt(source: &DynamicImage) -> (Vec<u8>, OutMeta) {
             }
             None
         };
-        let bad_fallback_low_range = || reduce_starting_values(vec![
-            10,
-            35,
-            65,
-            75,
-            85,
-        ]);
-        let bad_fallback = || reduce_starting_values(vec![
-            0,
-            10,
-            20,
-            30,
-            40,
-            50,
-            60,
-            70,
-            90,
-        ]);
+        let bad_fallback_low_range = || reduce_starting_values(vec![10, 35, 65, 75, 85]);
+        let bad_fallback = || reduce_starting_values(vec![0, 10, 20, 30, 40, 50, 60, 70, 90]);
         // TODO:
         match class.class {
-            Class::L0 | Class::L1 | Class::L2 => {
-                bad_fallback_low_range()
-            }
-            _ => bad_fallback()
+            Class::L0 | Class::L1 | Class::L2 => bad_fallback_low_range(),
+            _ => bad_fallback(),
         }
     };
     let start_q = start_q.unwrap_or(1) as u32;

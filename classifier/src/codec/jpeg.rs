@@ -1,21 +1,15 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
-use std::path::PathBuf;
+use image::{ColorType, DynamicImage, GenericImage, GenericImageView, Pixel};
+use itertools::Itertools;
+use libc::{c_float, c_void, size_t};
+use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::convert::From;
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
-use libc::{size_t, c_float, c_void};
-use serde::{Serialize, Deserialize};
-use image::{
-    GenericImage,
-    DynamicImage,
-    GenericImageView,
-    ColorType,
-    Pixel,
-};
-use rayon::prelude::*;
-use itertools::Itertools;
+use std::path::PathBuf;
 
 ///////////////////////////////////////////////////////////////////////////////
 // MOZJPEG FFI HELPERS
@@ -29,11 +23,9 @@ const FALSE: mozjpeg_sys::boolean = false as mozjpeg_sys::boolean;
 const COLOR_SPACE: mozjpeg_sys::J_COLOR_SPACE = mozjpeg_sys::J_COLOR_SPACE::JCS_RGB;
 const COLOR_SPACE_COMPONENTS: libc::c_int = 3 as libc::c_int;
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // MOZJPEG ENCODER
 ///////////////////////////////////////////////////////////////////////////////
-
 
 pub unsafe fn encode(source: &DynamicImage, quality: u8) -> Vec<u8> {
     ///////////////////////////////////////////////////////////////////////////
@@ -71,8 +63,16 @@ pub unsafe fn encode(source: &DynamicImage, quality: u8) -> Vec<u8> {
     cinfo.write_JFIF_header = FALSE;
     cinfo.optimize_coding = TRUE;
     mozjpeg_sys::jpeg_simple_progression(&mut cinfo);
-    mozjpeg_sys::jpeg_c_set_bool_param(&mut cinfo, mozjpeg_sys::JBOOLEAN_USE_SCANS_IN_TRELLIS, TRUE);
-    mozjpeg_sys::jpeg_c_set_bool_param(&mut cinfo, mozjpeg_sys::JBOOLEAN_USE_LAMBDA_WEIGHT_TBL, TRUE);
+    mozjpeg_sys::jpeg_c_set_bool_param(
+        &mut cinfo,
+        mozjpeg_sys::JBOOLEAN_USE_SCANS_IN_TRELLIS,
+        TRUE,
+    );
+    mozjpeg_sys::jpeg_c_set_bool_param(
+        &mut cinfo,
+        mozjpeg_sys::JBOOLEAN_USE_LAMBDA_WEIGHT_TBL,
+        TRUE,
+    );
     mozjpeg_sys::jpeg_set_quality(&mut cinfo, quality as i32, TRUE);
 
     ///////////////////////////////////////////////////////////////////////////
@@ -111,8 +111,6 @@ pub unsafe fn encode(source: &DynamicImage, quality: u8) -> Vec<u8> {
 ///////////////////////////////////////////////////////////////////////////////
 // OPT
 ///////////////////////////////////////////////////////////////////////////////
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // DEV
