@@ -1,56 +1,36 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
-use std::collections::LinkedList;
-use std::convert::AsRef;
-use std::path::{PathBuf, Path};
-use std::ffi::{CStr, CString};
-use std::os::raw::{c_char, c_int};
-use std::io::{
-    SeekFrom,
-    Cursor,
-    Seek,
-    Read,
-};
-use libc::{size_t, c_float, c_void};
+use crate::data::{VideoBuffer, Yuv420P};
 use ffmpeg_dev::extra::defs;
 use ffmpeg_dev::sys::{
-    self,
-    AVFrame,
-    AVDictionary,
-    AVCodec,
-    AVCodecContext,
-    AVStream,
-    AVPacket,
-    AVFormatContext,
-    AVOutputFormat,
-    AVCodecParameters,
-    AVCodecParserContext,
-    AVMediaType,
-    AVMediaType_AVMEDIA_TYPE_UNKNOWN as AVMEDIA_TYPE_UNKNOWN,
-    AVMediaType_AVMEDIA_TYPE_VIDEO as AVMEDIA_TYPE_VIDEO,
+    self, AVCodec, AVCodecContext, AVCodecID_AV_CODEC_ID_H264 as AV_CODEC_ID_H264,
+    AVCodecParameters, AVCodecParserContext, AVDictionary, AVFormatContext, AVFrame, AVMediaType,
+    AVMediaType_AVMEDIA_TYPE_ATTACHMENT as AVMEDIA_TYPE_ATTACHMENT,
     AVMediaType_AVMEDIA_TYPE_AUDIO as AVMEDIA_TYPE_AUDIO,
     AVMediaType_AVMEDIA_TYPE_DATA as AVMEDIA_TYPE_DATA,
-    AVMediaType_AVMEDIA_TYPE_SUBTITLE as AVMEDIA_TYPE_SUBTITLE,
-    AVMediaType_AVMEDIA_TYPE_ATTACHMENT as AVMEDIA_TYPE_ATTACHMENT,
     AVMediaType_AVMEDIA_TYPE_NB as AVMEDIA_TYPE_NB,
-    AVFMT_NOFILE,
-    AVIO_FLAG_WRITE,
-    AVRounding_AV_ROUND_NEAR_INF as AV_ROUND_NEAR_INF,
-    AVRounding_AV_ROUND_PASS_MINMAX as AV_ROUND_PASS_MINMAX,
-    AVCodecID_AV_CODEC_ID_H264 as AV_CODEC_ID_H264,
-    AV_INPUT_BUFFER_PADDING_SIZE,
+    AVMediaType_AVMEDIA_TYPE_SUBTITLE as AVMEDIA_TYPE_SUBTITLE,
+    AVMediaType_AVMEDIA_TYPE_UNKNOWN as AVMEDIA_TYPE_UNKNOWN,
+    AVMediaType_AVMEDIA_TYPE_VIDEO as AVMEDIA_TYPE_VIDEO, AVOutputFormat, AVPacket,
     AVPixelFormat_AV_PIX_FMT_YUV420P as AV_PIX_FMT_YUV420P,
+    AVRounding_AV_ROUND_NEAR_INF as AV_ROUND_NEAR_INF,
+    AVRounding_AV_ROUND_PASS_MINMAX as AV_ROUND_PASS_MINMAX, AVStream, AVFMT_NOFILE,
+    AVIO_FLAG_WRITE, AV_INPUT_BUFFER_PADDING_SIZE,
 };
-use crate::data::{VideoBuffer, Yuv420P};
-
+use libc::{c_float, c_void, size_t};
+use std::collections::LinkedList;
+use std::convert::AsRef;
+use std::ffi::{CStr, CString};
+use std::io::{Cursor, Read, Seek, SeekFrom};
+use std::os::raw::{c_char, c_int};
+use std::path::{Path, PathBuf};
 
 fn c_str(s: &str) -> CString {
     CString::new(s).expect("str to c str")
 }
 
 static REFCOUNT: i32 = 0;
-
 
 pub struct RawYuv420p {
     pub width: u32,
@@ -75,7 +55,6 @@ impl Drop for RawYuv420p {
     }
 }
 
-
 impl RawYuv420p {
     pub fn luma_size(&self) -> u32 {
         self.width * self.height
@@ -86,7 +65,7 @@ impl RawYuv420p {
     pub unsafe fn to_vec(&self) -> Vec<u8> {
         let mut output = Vec::<u8>::new();
         let ptr = self.data[0];
-        for i in 0 .. self.bufsize as usize {
+        for i in 0..self.bufsize as usize {
             let val = ptr.add(i);
             let val = *val;
             output.push(val);
@@ -96,16 +75,12 @@ impl RawYuv420p {
     pub unsafe fn save(&self, path: &str) {
         println!(
             "ffplay -video_size {}x{} -pixel_format yuv420p {}",
-            self.width,
-            self.height,
-            path,
+            self.width, self.height, path,
         );
         std::fs::write(path, self.to_vec());
     }
     pub unsafe fn new(width: u32, height: u32) -> Self {
-        use sys::{
-            AVPixelFormat_AV_PIX_FMT_YUV420P as AV_PIX_FMT_YUV420P
-        };
+        use sys::AVPixelFormat_AV_PIX_FMT_YUV420P as AV_PIX_FMT_YUV420P;
         let pix_fmt: sys::AVPixelFormat = AV_PIX_FMT_YUV420P;
         let mut linesize = [0i32; 4];
         let mut data = [
@@ -131,9 +106,7 @@ impl RawYuv420p {
         }
     }
     pub unsafe fn fill_from_frame(&mut self, frame: *mut sys::AVFrame) {
-        use sys::{
-            AVPixelFormat_AV_PIX_FMT_YUV420P as AV_PIX_FMT_YUV420P
-        };
+        use sys::AVPixelFormat_AV_PIX_FMT_YUV420P as AV_PIX_FMT_YUV420P;
         assert!(!frame.is_null());
         assert!((*frame).format == AV_PIX_FMT_YUV420P);
         sys::av_image_copy(
@@ -197,33 +170,23 @@ impl Drop for Decoder {
                 self.demux_ops = std::ptr::null_mut();
             }
             if !self.video_dec_ctx.is_null() {
-                sys::avcodec_free_context(
-                    &mut self.video_dec_ctx
-                );
+                sys::avcodec_free_context(&mut self.video_dec_ctx);
                 self.video_dec_ctx = std::ptr::null_mut();
             }
             if !self.audio_dec_ctx.is_null() {
-                sys::avcodec_free_context(
-                    &mut self.audio_dec_ctx
-                );
+                sys::avcodec_free_context(&mut self.audio_dec_ctx);
                 self.audio_dec_ctx = std::ptr::null_mut();
             }
             if !self.fmt_ctx.is_null() {
-                sys::avformat_close_input(
-                    &mut self.fmt_ctx
-                );
+                sys::avformat_close_input(&mut self.fmt_ctx);
                 self.fmt_ctx = std::ptr::null_mut();
             }
             if !self.frame.is_null() {
-                sys::av_frame_free(
-                    &mut self.frame
-                );
+                sys::av_frame_free(&mut self.frame);
                 self.frame = std::ptr::null_mut();
             }
             if !self.video_dst_data[0].is_null() {
-                sys::av_free(
-                    self.video_dst_data[0] as *mut c_void
-                );
+                sys::av_free(self.video_dst_data[0] as *mut c_void);
                 self.video_dst_data = [
                     std::ptr::null_mut(),
                     std::ptr::null_mut(),
@@ -266,13 +229,7 @@ impl Decoder {
     }
 }
 
-
-
-unsafe fn decode_packet(
-    got_frame: &mut i32,
-    cached: i32,
-    decoder: &mut Decoder,
-) -> i32 {
+unsafe fn decode_packet(got_frame: &mut i32, cached: i32, decoder: &mut Decoder) -> i32 {
     let mut ret: i32 = 0;
     let mut decoded: i32 = decoder.pkt.size;
 
@@ -292,12 +249,10 @@ unsafe fn decode_packet(
         }
 
         if (*got_frame > 0) {
-
-            if (
-                (*decoder.frame).width != decoder.width ||
-                (*decoder.frame).height != decoder.height ||
-                (*decoder.frame).format != decoder.pix_fmt
-            ) {
+            if ((*decoder.frame).width != decoder.width
+                || (*decoder.frame).height != decoder.height
+                || (*decoder.frame).format != decoder.pix_fmt)
+            {
                 // To handle this change, one could call av_image_alloc again and
                 // decode the following frames into another rawvideo file.
                 eprintln!("invalid width/height/pixel-format");
@@ -323,7 +278,7 @@ unsafe fn decode_packet(
                     (*decoder.frame).width as u32,
                     (*decoder.frame).height as u32,
                 );
-    
+
                 // COPY DECODED FRAME TO DESTINATION BUFFER;
                 // THIS IS REQUIRED SINCE RAWVIDEO EXPECTS NON ALIGNED DATA
                 // sys::av_image_copy(
@@ -350,16 +305,13 @@ unsafe fn decode_packet(
         if (ret < 0) {
             panic!("Error decoding audio frame");
         }
-        
+
         // Some audio decoders decode only part of the packet, and have to be
         // called again with the remainder of the packet data.
         // Sample: fate-suite/lossless-audio/luckynight-partial.shn
         // Also, some decoders might over-read the packet.
         decoded = {
-            let x = ffmpeg_dev::extra::defs::ffmin(
-                ret as usize,
-                decoder.pkt.size as usize,
-            );
+            let x = ffmpeg_dev::extra::defs::ffmin(ret as usize, decoder.pkt.size as usize);
             x as i32
         };
 
@@ -402,14 +354,7 @@ unsafe fn open_codec_context(
     let mut dec: *mut AVCodec = std::ptr::null_mut();
     let mut opts: *mut AVDictionary = std::ptr::null_mut();
 
-    ret = sys::av_find_best_stream(
-        fmt_ctx,
-        media_type,
-        -1,
-        -1,
-        std::ptr::null_mut(),
-        0,
-    );
+    ret = sys::av_find_best_stream(fmt_ctx, media_type, -1, -1, std::ptr::null_mut(), 0);
     if (ret < 0) {
         println!("Could not find %s stream in input file");
         return ret;
@@ -420,14 +365,11 @@ unsafe fn open_codec_context(
         assert!(!(*st).codecpar.is_null());
 
         // FIND DECODER FOR THE STREAM
-        dec = sys::avcodec_find_decoder(
-            (*(*st).codecpar).codec_id
-        );
+        dec = sys::avcodec_find_decoder((*(*st).codecpar).codec_id);
         if (dec.is_null()) {
             unimplemented!("Failed to find codec");
             return unimplemented!();
         }
-        
 
         // ALLOCATE A CODEC CONTEXT FOR THE DECODER
         *dec_ctx = sys::avcodec_alloc_context3(dec);
@@ -437,10 +379,7 @@ unsafe fn open_codec_context(
         }
 
         // COPY CODEC PARAMETERS FROM INPUT STREAM TO OUTPUT CODEC CONTEXT
-        ret = sys::avcodec_parameters_to_context(
-            *dec_ctx,
-            (*st).codecpar,
-        );
+        ret = sys::avcodec_parameters_to_context(*dec_ctx, (*st).codecpar);
         if (ret < 0) {
             panic!("Failed to copy codec parameters to decoder context");
             return unimplemented!();
@@ -458,17 +397,13 @@ unsafe fn open_codec_context(
     return 0;
 }
 
-unsafe fn get_format_from_sample_fmt(
-    fmt: &mut CString,
-    sample_fmt: sys::AVSampleFormat,
-) -> i32 {
+unsafe fn get_format_from_sample_fmt(fmt: &mut CString, sample_fmt: sys::AVSampleFormat) -> i32 {
     use sys::{
-        AVSampleFormat,
-        AVSampleFormat_AV_SAMPLE_FMT_U8 as AV_SAMPLE_FMT_U8,
+        AVSampleFormat, AVSampleFormat_AV_SAMPLE_FMT_DBL as AV_SAMPLE_FMT_DBL,
+        AVSampleFormat_AV_SAMPLE_FMT_FLT as AV_SAMPLE_FMT_FLT,
         AVSampleFormat_AV_SAMPLE_FMT_S16 as AV_SAMPLE_FMT_S16,
         AVSampleFormat_AV_SAMPLE_FMT_S32 as AV_SAMPLE_FMT_S32,
-        AVSampleFormat_AV_SAMPLE_FMT_FLT as AV_SAMPLE_FMT_FLT,
-        AVSampleFormat_AV_SAMPLE_FMT_DBL as AV_SAMPLE_FMT_DBL,
+        AVSampleFormat_AV_SAMPLE_FMT_U8 as AV_SAMPLE_FMT_U8,
     };
     let mut i: i32;
 
@@ -525,7 +460,6 @@ unsafe fn get_format_from_sample_fmt(
     return -1;
 }
 
-
 pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
     // DEBUG
     let suppress_log = true;
@@ -539,23 +473,19 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
     struct CallbackContext {
         buffer: Cursor<Vec<u8>>,
     }
-    
-    unsafe extern "C" fn read_packet(
-        ctx: *mut c_void,
-        buf: *mut u8,
-        buf_size: i32,
-    ) -> i32 {
+
+    unsafe extern "C" fn read_packet(ctx: *mut c_void, buf: *mut u8, buf_size: i32) -> i32 {
         // INIT
-        let ctx = (ctx as *mut CallbackContext)
-            .as_mut()
-            .expect("not null");
+        let ctx = (ctx as *mut CallbackContext).as_mut().expect("not null");
         assert!(buf_size >= 0);
         let buf_size = buf_size as usize;
         // CHECK
         let mut chunk = {
-            let xs = ctx.buffer
+            let xs = ctx
+                .buffer
                 .get_ref()
-                .split_at(ctx.buffer.position() as usize).1
+                .split_at(ctx.buffer.position() as usize)
+                .1
                 .chunks(buf_size)
                 .nth(0);
             if xs.is_none() {
@@ -580,9 +510,7 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
     ) -> i64 {
         use std::io::SeekFrom;
         // INIT
-        let ctx = (opaque as *mut CallbackContext)
-            .as_mut()
-            .expect("not null");
+        let ctx = (opaque as *mut CallbackContext).as_mut().expect("not null");
         // CHECK
         assert!(whence >= 0);
         // MODES
@@ -598,7 +526,7 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
             AVSEEK_SIZE => {
                 return ctx.buffer.get_ref().len() as i64;
             }
-            _ => panic!("what to do here?")
+            _ => panic!("what to do here?"),
         };
         ctx.buffer.seek(seek_from).expect("seek to position") as i64
     }
@@ -607,7 +535,7 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
     let avio_ctx_buffer_size = 4096;
     // let avio_ctx_buffer_size = source.len();
     let mut avio_ctx_buffer: *mut u8 = sys::av_malloc(avio_ctx_buffer_size) as *mut u8;
-    let mut bd: CallbackContext = CallbackContext{
+    let mut bd: CallbackContext = CallbackContext {
         buffer: Cursor::new(source),
     };
     let mut avio_ctx: *mut sys::AVIOContext = sys::avio_alloc_context(
@@ -620,7 +548,7 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
         Some(seek_packet),
     );
     assert!(!avio_ctx.is_null());
-        
+
     // OPEN INPUT FILE, AND ALLOCATE FORMAT CONTEXT
     assert!(!decoder.fmt_ctx.is_null());
     assert!(!decoder.fmt_ctx.is_null());
@@ -650,7 +578,8 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
         &mut decoder.video_dec_ctx,
         decoder.fmt_ctx,
         AVMEDIA_TYPE_VIDEO,
-    ) >= 0) {
+    ) >= 0)
+    {
         decoder.video_stream = (*(*decoder.fmt_ctx).streams).add(decoder.video_stream_idx as usize);
 
         // ALLOCATE IMAGE WHERE THE DECODED IMAGE WILL BE PUT
@@ -677,20 +606,17 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
             &mut decoder.audio_stream_idx,
             &mut decoder.audio_dec_ctx,
             decoder.fmt_ctx,
-            AVMEDIA_TYPE_AUDIO
-        ) >= 0) {
-            decoder.audio_stream = (*(*decoder.fmt_ctx).streams).add(decoder.audio_stream_idx as usize);
+            AVMEDIA_TYPE_AUDIO,
+        ) >= 0)
+        {
+            decoder.audio_stream =
+                (*(*decoder.fmt_ctx).streams).add(decoder.audio_stream_idx as usize);
         }
     }
 
     // DUMP INPUT INFORMATION TO STDERR
     if !suppress_log {
-        sys::av_dump_format(
-            decoder.fmt_ctx,
-            0,
-            std::ptr::null(),
-            0,
-        );
+        sys::av_dump_format(decoder.fmt_ctx, 0, std::ptr::null(), 0);
     }
 
     if (decoder.audio_stream.is_null() && decoder.video_stream.is_null()) {
@@ -753,7 +679,8 @@ pub unsafe fn demux_decode(source: Vec<u8>) -> Vec<Yuv420P> {
     }
 
     // RETURN VALUES
-    let decoded_frames = decoder.decoded_video
+    let decoded_frames = decoder
+        .decoded_video
         .iter()
         .map(|x| x.to_higher())
         .collect::<Vec<_>>();

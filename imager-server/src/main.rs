@@ -1,7 +1,7 @@
 #![allow(unused)]
 pub mod server;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use structopt::StructOpt;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -10,10 +10,7 @@ use structopt::StructOpt;
 
 /// The Imager Server Interface
 #[derive(Debug, Clone, Serialize, Deserialize, StructOpt)]
-#[structopt(
-    name = "imager-server",
-    rename_all = "kebab-case"
-)]
+#[structopt(name = "imager-server", rename_all = "kebab-case")]
 pub struct Command {
     #[structopt(short, long)]
     address: String,
@@ -24,7 +21,6 @@ impl Command {
         server::run(&self.address);
     }
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // MAIN

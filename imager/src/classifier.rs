@@ -1,34 +1,19 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
-use std::collections::*;
-use std::path::PathBuf;
-use serde::{Serialize, Deserialize};
 use image::{
-    GenericImage,
-    GenericImageView,
-    DynamicImage,
-    FilterType,
-    Pixel,
-    ColorType,
-    ImageBuffer,
-    ImageFormat,
-    GrayImage,
-    RgbImage,
-    Luma,
-    Rgb,
-    ConvertBuffer,
+    buffer::ConvertBuffer, imageops::FilterType, ColorType, DynamicImage, GenericImage,
+    GenericImageView, GrayImage, ImageBuffer, ImageFormat, Luma, Pixel, Rgb, RgbImage,
 };
 use imageproc::corners::Fast;
 use imageproc::definitions::HasBlack;
-use imageproc::region_labelling::{
-    connected_components,
-    Connectivity
-};
 use imageproc::distance_transform::Norm;
-
+use imageproc::region_labelling::{connected_components, Connectivity};
+use serde::{Deserialize, Serialize};
+use std::collections::hash_map::DefaultHasher;
+use std::collections::*;
+use std::hash::{Hash, Hasher};
+use std::path::PathBuf;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Class {
@@ -49,7 +34,7 @@ impl Class {
             "m1" => Some(Class::M1),
             "h1" => Some(Class::H1),
             "h2" => Some(Class::H2),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -67,19 +52,15 @@ impl std::fmt::Display for Class {
     }
 }
 
-
-
 impl std::str::FromStr for Class {
     type Err = String;
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         match Class::from_str(input) {
             Some(x) => Ok(x),
-            None => Err(String::from("parser failed (invalid)"))
+            None => Err(String::from("parser failed (invalid)")),
         }
     }
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // UTILS
@@ -89,7 +70,7 @@ pub fn random_color_map(keys: HashSet<u32>) -> HashMap<u32, image::Rgb<u8>> {
     use colourado::{Color, ColorPalette, PaletteType};
     let palette = ColorPalette::new(keys.len() as u32, PaletteType::Random, false);
     let mut output: HashMap<u32, image::Rgb<u8>> = HashMap::new();
-    for (key, ix) in keys.iter().zip(0 .. keys.len()) {
+    for (key, ix) in keys.iter().zip(0..keys.len()) {
         let key = key.clone();
         if key == 0 {
             output.insert(key, image::Rgb([0, 0, 0]));
@@ -167,7 +148,6 @@ pub fn is_white_dominant(media: &DynamicImage) -> bool {
     sum > 130_100
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // PROCESS
 ///////////////////////////////////////////////////////////////////////////////
@@ -187,8 +167,6 @@ pub struct Meta {
     pub white_count: usize,
 }
 
-
-
 #[derive(Clone)]
 pub struct Report {
     pub debug_images: DebugImages,
@@ -197,26 +175,19 @@ pub struct Report {
     pub white_backdrop: bool,
 }
 
-
-
 fn calcuate_class(meta: &Meta) -> Class {
     let mut output = Class::L1;
     if meta.edges_sum >= 110_000 && meta.regions_sum <= 12_000 && meta.component_count < 90 {
         output = Class::H2;
-    }
-    else if meta.edges_sum >= 70_000 && meta.regions_sum <= 12_000 && meta.component_count < 90 {
+    } else if meta.edges_sum >= 70_000 && meta.regions_sum <= 12_000 && meta.component_count < 90 {
         output = Class::H1;
-    }
-    else if meta.edges_sum >= 60_000 && meta.regions_sum <= 90_000 {
+    } else if meta.edges_sum >= 60_000 && meta.regions_sum <= 90_000 {
         output = Class::M1;
-    }
-    else if meta.edges_sum >= 20_000 && meta.regions_sum <= 200_000 {
+    } else if meta.edges_sum >= 20_000 && meta.regions_sum <= 200_000 {
         output = Class::L2;
-    }
-    else if meta.component_count > 20 {
+    } else if meta.component_count > 20 {
         output = Class::L2;
-    }
-    else if meta.component_count <= 6 {
+    } else if meta.component_count <= 6 {
         output = Class::L0;
     }
     output
@@ -237,25 +208,21 @@ pub fn report(media: &DynamicImage) -> Report {
     for (_, _, px) in grayscale_media.enumerate_pixels_mut() {
         // px.0[0] = 200;
     }
-    let white_count = grayscale_media
-        .pixels()
-        .fold(0,|acc, x| {
-            let value = x.0[0];
-            if value >= 220 {
-                acc + 1
-            } else {
-                acc
-            }
-        });
+    let white_count = grayscale_media.pixels().fold(0, |acc, x| {
+        let value = x.0[0];
+        if value >= 220 {
+            acc + 1
+        } else {
+            acc
+        }
+    });
     // EDGES
     let edges_media: GrayImage = imageproc::edges::canny(&media.to_luma(), 10.0, 20.0);
     let edges_sum: usize = edges_media
         .pixels()
-        .fold(0, |acc, px| {
-            match px.channels()[0] {
-                255 => {acc + 1}
-                _ => {acc}
-            }
+        .fold(0, |acc, px| match px.channels()[0] {
+            255 => acc + 1,
+            _ => acc,
         });
     // REGIONS
     let mut regions_media = imageproc::morphology::close(&edges_media, Norm::LInf, 6);
@@ -267,7 +234,11 @@ pub fn report(media: &DynamicImage) -> Report {
         *px = Luma([new_px]);
     }
     let components_background_color = Luma::black();
-    let mut components = connected_components(&regions_media, Connectivity::Eight, components_background_color);
+    let mut components = connected_components(
+        &regions_media,
+        Connectivity::Eight,
+        components_background_color,
+    );
     let component_count = components.pixels().map(|p| p[0]).max().expect("components");
     let mut region_sums: HashMap<u32, usize> = HashMap::new();
     for (_, _, px) in components.enumerate_pixels() {
@@ -280,16 +251,22 @@ pub fn report(media: &DynamicImage) -> Report {
                 Some(v) => {
                     *v = v.clone() + 1;
                 }
-            }   
+            }
         }
     }
-    let regions_sum = region_sums.values().map(|x| x).max().map(|x| x.clone()).unwrap_or(0);
+    let regions_sum = region_sums
+        .values()
+        .map(|x| x)
+        .max()
+        .map(|x| x.clone())
+        .unwrap_or(0);
     let debug_colors = random_color_map(components.pixels().map(|p| p[0]).map(|x| x).collect());
-    let regions_media = ImageBuffer::from_fn(regions_media.width(), regions_media.height(), |x, y| {
-        let px_key = components.get_pixel(x, y).channels()[0];
-        let color = debug_colors.get(&px_key).expect("missing color entry");
-        color.clone()
-    });
+    let regions_media =
+        ImageBuffer::from_fn(regions_media.width(), regions_media.height(), |x, y| {
+            let px_key = components.get_pixel(x, y).channels()[0];
+            let color = debug_colors.get(&px_key).expect("missing color entry");
+            color.clone()
+        });
     // DEBUG IMAGES
     let debug_images = DebugImages {
         grayscale: grayscale_media,

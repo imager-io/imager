@@ -1,15 +1,14 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
-use std::path::PathBuf;
-use std::sync::{Mutex, MutexGuard};
+use lazy_static::lazy_static;
+use libc::{c_float, c_void, size_t};
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
-use libc::{size_t, c_float, c_void};
-use lazy_static::lazy_static;
+use std::path::PathBuf;
+use std::sync::{Mutex, MutexGuard};
 
-use crate::data::{Yuv420P, VideoBuffer};
-
+use crate::data::{VideoBuffer, Yuv420P};
 
 ///////////////////////////////////////////////////////////////////////////////
 // VMAF CONTEXT
@@ -22,21 +21,14 @@ struct Context<'a> {
 }
 
 lazy_static! {
-    static ref VMAF_LOCK: Mutex<()> = {
-        Mutex::new(())
-    };
+    static ref VMAF_LOCK: Mutex<()> = { Mutex::new(()) };
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // VMAF CALLBACK
 ///////////////////////////////////////////////////////////////////////////////
 
-
-unsafe fn fill_vmaf_buffer(
-    mut output: *mut c_float,
-    output_stride: c_int,
-    source: &Yuv420P,
-) {
+unsafe fn fill_vmaf_buffer(mut output: *mut c_float, output_stride: c_int, source: &Yuv420P) {
     let (width, height) = source.dimensions();
     let src_linesize = source.width as usize;
     let dest_stride = output_stride as usize;
@@ -77,7 +69,7 @@ unsafe extern "C" fn read_frame(
         (None, None) => {
             vmaf_ctx.frames_set = true;
         }
-        _ => panic!()
+        _ => panic!(),
     }
     if vmaf_ctx.frames_set {
         2
@@ -86,12 +78,14 @@ unsafe extern "C" fn read_frame(
     }
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // VMAF PIPELINE
 ///////////////////////////////////////////////////////////////////////////////
 
-pub unsafe fn vmaf_controller<'a>(stream1: &'a mut VideoBuffer, stream2: &'a mut VideoBuffer) -> f64 {
+pub unsafe fn vmaf_controller<'a>(
+    stream1: &'a mut VideoBuffer,
+    stream2: &'a mut VideoBuffer,
+) -> f64 {
     // CHECKS
     assert!(stream1.dimensions() == stream2.dimensions());
 
@@ -100,7 +94,7 @@ pub unsafe fn vmaf_controller<'a>(stream1: &'a mut VideoBuffer, stream2: &'a mut
     let vmaf_ctx = Box::new(Context {
         stream1: stream1,
         stream2: stream2,
-        frames_set: false
+        frames_set: false,
     });
     let vmaf_ctx = Box::into_raw(vmaf_ctx);
 
@@ -147,7 +141,7 @@ pub unsafe fn vmaf_controller<'a>(stream1: &'a mut VideoBuffer, stream2: &'a mut
         pool_method,
         n_thread,
         n_subsample,
-        enable_conf_interval
+        enable_conf_interval,
     );
 
     // CHECK
@@ -169,7 +163,7 @@ pub fn get_report(stream1: &VideoBuffer, stream2: &VideoBuffer) -> f64 {
     // LOCK
     let lock = VMAF_LOCK.lock().expect("failed to lock vmaf work");
     // GO!
-    let score = unsafe {vmaf_controller(&mut stream1, &mut stream2)};
+    let score = unsafe { vmaf_controller(&mut stream1, &mut stream2) };
     // UNLOCK
     std::mem::drop(lock);
     // DONE

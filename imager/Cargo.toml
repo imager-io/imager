@@ -12,27 +12,27 @@ exclude = ["assets"]
 readme = "README.md"
 
 [dependencies]
-libc = "^0.2"
-mozjpeg-sys = "^0.10"
-vmaf-sys = {version = "0.0.10"}
+libc = "0.2.93"
+mozjpeg-sys = "0.10.13"
+vmaf-sys = "0.0.10"
 colourado = "0.2.0"
-glob = "^0.3"
-structopt = "0.3.5"
-rand = "^0.7"
-rayon = "1.1.0"
-either = {version = "^1", features = ["serde"]}
-serde = {version = "^1.0", features = ["derive"]}
-serde_json = "^1.0"
+glob = "0.3.0"
+structopt = "0.3.21"
+rand = "0.8.3"
+rayon = "1.5.0"
+either = {version = "1.6.1", features = ["serde"]}
+serde = {version = "1.0.125", features = ["derive"]}
+serde_json = "1.0.64"
 lazy_static = "1.4.0"
-itertools = "0.8.0"
+itertools = "0.10.0"
 exoquant = "0.2.0"
-lodepng = "2.5.0"
-image = "^0.22"
-imageproc = "^0.19"
-png = "0.15.1"
+lodepng = "3.4.5"
+image = "0.23.14"
+imageproc = "0.22.0"
+png = "0.16.8"
 rgb2yuv420 = "0.2.3"
 webp-dev = "0.4.1"
-indicatif = "0.12.0"
+indicatif = "0.15.0"
 
 [features]
 default = []

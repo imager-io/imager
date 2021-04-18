@@ -1,27 +1,15 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
+use actix_web::http::StatusCode;
+use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer, Responder};
+use futures::{Future, Stream};
+use imager::data::{OutputFormat, OutputSize, Resolution};
+use imager::opt;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::{From, TryFrom};
 use std::str::FromStr;
-use futures::{Future, Stream};
-use actix_web::{
-    web,
-    App,
-    Responder,
-    HttpServer,
-    HttpRequest,
-    HttpResponse,
-};
-use actix_web::http::StatusCode;
-use serde::{Serialize, Deserialize};
-use imager::data::{
-    Resolution,
-    OutputFormat,
-    OutputSize,
-};
-use imager::opt;
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // DATA TYPES - OPT-PARAMETERS
@@ -32,7 +20,6 @@ pub struct OptParameters {
     size: OutputSize,
     format: OutputFormat,
 }
-
 
 impl TryFrom<http::Uri> for OptParameters {
     type Error = ();
@@ -61,14 +48,9 @@ impl TryFrom<http::Uri> for OptParameters {
             .get("format")
             .and_then(|x| OutputFormat::from_str(x).ok())
             .unwrap_or_default();
-        Ok(OptParameters {
-            size,
-            format,
-        })
+        Ok(OptParameters { size, format })
     }
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // HTTP ROUTES
@@ -78,7 +60,7 @@ fn index(request: HttpRequest) -> HttpResponse {
     let version = env!("CARGO_PKG_VERSION");
     HttpResponse::Ok().body(format!(
         "Imager server, version '{version}'.",
-        version=version,
+        version = version,
     ))
 }
 
@@ -112,15 +94,9 @@ fn opt_route(
             let x: actix_web::error::Error = From::from(x);
             x
         })
-        .and_then(|x| {
-            HttpResponse::Ok()
-                .content_type("image/jpeg")
-                .body(x)
-        });
+        .and_then(|x| HttpResponse::Ok().content_type("image/jpeg").body(x));
     result
-
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // EXTERNAL API

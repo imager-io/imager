@@ -1,23 +1,17 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
-use std::rc::Rc;
+use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer};
+use itertools::Itertools;
+use libc::{c_float, c_void, size_t};
+use rayon::prelude::*;
 use std::collections::LinkedList;
 use std::convert::{AsRef, TryFrom};
-use std::path::{PathBuf, Path};
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
-use libc::{size_t, c_float, c_void};
-use itertools::Itertools;
-use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer};
-use rayon::prelude::*;
-use webp_dev::sys::webp::{
-    self as webp_sys,
-    WebPConfig,
-    WebPPicture,
-    WebPMemoryWriter,
-};
-
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
+use webp_dev::sys::webp::{self as webp_sys, WebPConfig, WebPMemoryWriter, WebPPicture};
 
 ///////////////////////////////////////////////////////////////////////////////
 // INTERNAL HELPERS
@@ -41,9 +35,7 @@ pub fn open_dir_sorted_paths<P: AsRef<Path>>(path: P) -> Vec<PathBuf> {
             let index = file_name.parse::<usize>().ok()?;
             Some((index, x))
         })
-        .sorted_by(|(i, _), (j, _)| {
-            i.cmp(j)
-        })
+        .sorted_by(|(i, _), (j, _)| i.cmp(j))
         .map(|(_, x)| x)
         .collect::<Vec<_>>()
 }
@@ -52,7 +44,7 @@ unsafe fn convert_to_yuv_using_webp(source: &DynamicImage) -> Yuv420P {
     let (width, height) = source.dimensions();
     assert!(width < webp_sys::WEBP_MAX_DIMENSION);
     assert!(height < webp_sys::WEBP_MAX_DIMENSION);
-    let mut picture: WebPPicture = unsafe {std::mem::zeroed()};
+    let mut picture: WebPPicture = unsafe { std::mem::zeroed() };
     unsafe {
         assert!(webp_sys::webp_picture_init(&mut picture) != 0);
     };
@@ -107,7 +99,11 @@ unsafe fn convert_to_yuv_using_webp(source: &DynamicImage) -> Yuv420P {
     };
     std::mem::drop(picture);
     // DONE
-    let result = Yuv420P {data, width, height};
+    let result = Yuv420P {
+        data,
+        width,
+        height,
+    };
     assert!(result.expected_yuv420p_size());
     result
 }
@@ -116,7 +112,7 @@ unsafe fn convert_to_rgba_using_webp(source: &Yuv420P) -> DynamicImage {
     let (width, height) = source.dimensions();
     assert!(width < webp_sys::WEBP_MAX_DIMENSION);
     assert!(height < webp_sys::WEBP_MAX_DIMENSION);
-    let mut picture: WebPPicture = unsafe {std::mem::zeroed()};
+    let mut picture: WebPPicture = unsafe { std::mem::zeroed() };
     assert!(webp_sys::webp_picture_init(&mut picture) != 0);
     let argb_stride = width;
     picture.use_argb = 0;
@@ -145,9 +141,7 @@ unsafe fn convert_to_rgba_using_webp(source: &Yuv420P) -> DynamicImage {
     // CONVERT
     assert!(picture.argb.is_null());
     assert!(webp_sys::webp_picture_has_transparency(&picture) == 0);
-    assert!(webp_sys::webp_picture_yuva_to_argb(
-        &mut picture,
-    ) != 0);
+    assert!(webp_sys::webp_picture_yuva_to_argb(&mut picture,) != 0);
     // CHECKS
     assert!(picture.use_argb == 1);
     assert!(!picture.argb.is_null());
@@ -170,7 +164,6 @@ unsafe fn convert_to_rgba_using_webp(source: &Yuv420P) -> DynamicImage {
     rgba_output
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // PICTURE BUFFERS
 ///////////////////////////////////////////////////////////////////////////////
@@ -188,7 +181,7 @@ impl Yuv420P {
         Yuv420P::from_image(&source)
     }
     pub fn from_image(source: &DynamicImage) -> Result<Self, ()> {
-        Ok(unsafe{ convert_to_yuv_using_webp(source) })
+        Ok(unsafe { convert_to_yuv_using_webp(source) })
     }
     pub fn open_yuv<P: AsRef<Path>>(path: P, width: u32, height: u32) -> Result<Self, ()> {
         let source = std::fs::read(path).expect("read raw yuv file");
@@ -217,25 +210,25 @@ impl Yuv420P {
     pub fn save(&self, path: &str) {
         println!(
             "ffplay -video_size {}x{} -pixel_format yuv420p {}",
-            self.width,
-            self.height,
-            path,
+            self.width, self.height, path,
         );
         std::fs::write(path, &self.data);
     }
     pub fn to_rgba_image(&self) -> DynamicImage {
-        unsafe {convert_to_rgba_using_webp(self)}
+        unsafe { convert_to_rgba_using_webp(self) }
     }
     pub fn y(&self) -> &[u8] {
         assert!(self.expected_yuv420p_size());
         let end = self.luma_size();
-        self.data.get(0 .. end as usize).expect("bad (Y) plane size")
+        self.data.get(0..end as usize).expect("bad (Y) plane size")
     }
     pub fn u(&self) -> &[u8] {
         assert!(self.expected_yuv420p_size());
-        let plane = self.data
+        let plane = self
+            .data
             .as_slice()
-            .split_at(self.luma_size() as usize).1
+            .split_at(self.luma_size() as usize)
+            .1
             .chunks(self.chroma_size() as usize)
             .nth(0)
             .expect("bad (U) plane chunk size");
@@ -244,9 +237,11 @@ impl Yuv420P {
     }
     pub fn v(&self) -> &[u8] {
         assert!(self.expected_yuv420p_size());
-        let plane = self.data
+        let plane = self
+            .data
             .as_slice()
-            .split_at(self.luma_size() as usize).1
+            .split_at(self.luma_size() as usize)
+            .1
             .chunks(self.chroma_size() as usize)
             .nth(1)
             .expect("bad (V) plane chunk size");
@@ -257,7 +252,6 @@ impl Yuv420P {
         (self.width, self.height)
     }
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // VIDEO FRAME BUFFERS
@@ -281,9 +275,7 @@ impl VideoBuffer {
         }
     }
     pub fn load_from_memory(source: &[u8]) -> Result<Self, ()> {
-        let result = unsafe {
-            crate::format::decode::demux_decode(source.to_vec())
-        };
+        let result = unsafe { crate::format::decode::demux_decode(source.to_vec()) };
         assert!(!result.is_empty());
         let width = result[0].width;
         let height = result[0].height;

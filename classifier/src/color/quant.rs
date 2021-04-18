@@ -1,15 +1,15 @@
-use std::convert::{AsRef, From};
-use std::io::{Read, Write, BufWriter};
-use std::process::exit;
-use std::iter::FromIterator;
-use std::iter::Extend;
-use std::path::{Path, PathBuf};
 use exoquant::optimizer::Optimizer;
 use exoquant::*;
+use image::imageops::FilterType;
+use image::{DynamicImage, GenericImage, GenericImageView};
 use lodepng::Bitmap;
 use lodepng::RGBA;
-use image::imageops::{FilterType};
-use image::{DynamicImage, GenericImage, GenericImageView};
+use std::convert::{AsRef, From};
+use std::io::{BufWriter, Read, Write};
+use std::iter::Extend;
+use std::iter::FromIterator;
+use std::path::{Path, PathBuf};
+use std::process::exit;
 
 fn encode_indexed(palette: &[Color], image: &[u8], width: u32, height: u32) -> Vec<u8> {
     let mut state = lodepng::State::new();
@@ -35,7 +35,9 @@ fn encode_indexed(palette: &[Color], image: &[u8], width: u32, height: u32) -> V
     state.info_png_mut().color.colortype = lodepng::ColorType::PALETTE;
     state.info_raw_mut().set_bitdepth(8);
     state.info_raw_mut().colortype = lodepng::ColorType::PALETTE;
-    state.encode(image, width as usize, height as usize).expect("encode png data")
+    state
+        .encode(image, width as usize, height as usize)
+        .expect("encode png data")
 }
 
 pub fn compress(source: &DynamicImage, num_colors: usize) -> Result<Vec<u8>, String> {
@@ -75,19 +77,14 @@ pub fn compress(source: &DynamicImage, num_colors: usize) -> Result<Vec<u8>, Str
         .remap_iter(Box::new(input_pixels.into_iter()), source.width() as usize)
         .collect();
     // ENCODE
-    let out_file = encode_indexed(
-        &palette,
-        &out_data,
-        source.width(),
-        source.height(),
-    );
+    let out_file = encode_indexed(&palette, &out_data, source.width(), source.height());
     // DONE
     Ok(out_file)
 }
 
-
 pub fn reduce_palette(source: &DynamicImage, num_colors: usize) -> DynamicImage {
     let result = compress(source, num_colors).expect("failed to reduce color palette");
-    let result = ::image::load_from_memory_with_format(&result, ::image::ImageFormat::Png).expect("decode png");
+    let result = ::image::load_from_memory_with_format(&result, ::image::ImageFormat::Png)
+        .expect("decode png");
     result
 }

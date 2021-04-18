@@ -1,24 +1,20 @@
-use std::convert::AsRef;
-use std::path::{PathBuf, Path};
-use std::collections::{HashMap, HashSet};
-use std::ops::Deref;
-use rand::prelude::*;
 use image::imageops::FilterType;
-use image::{GenericImage, GenericImageView, ImageBuffer, DynamicImage};
-use image::{Luma, Rgb, Pixel};
-use imageproc::region_labelling::{
-    connected_components,
-    Connectivity
-};
+use image::GrayImage;
+use image::{DynamicImage, GenericImage, GenericImageView, ImageBuffer};
+use image::{Luma, Pixel, Rgb};
+use imageproc::definitions::HasBlack;
 use imageproc::definitions::Image;
 use imageproc::distance_transform::Norm;
-use imageproc::definitions::HasBlack;
-use image::GrayImage;
+use imageproc::region_labelling::{connected_components, Connectivity};
+use rand::prelude::*;
 use rayon::prelude::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
+use std::convert::AsRef;
+use std::ops::Deref;
+use std::path::{Path, PathBuf};
 
 use crate::color::palette::{self, ToPrettyRgbPalette};
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // NOISY LAYER
@@ -45,17 +41,11 @@ impl NoisyLayer {
                 let cs_len = cs.len() as u32;
                 let sum = cs
                     .into_iter()
-                    .fold((0u32, 0u32), |(xs, ys), (x, y)| {
-                        (xs + x, ys + y)
-                    });
+                    .fold((0u32, 0u32), |(xs, ys), (x, y)| (xs + x, ys + y));
                 (sum.0 / cs_len, sum.1 / cs_len)
             })
             .collect::<Vec<_>>();
-        let mut output = ::image::GrayImage::from_pixel(
-            source.width(),
-            source.height(),
-            Luma([0])
-        );
+        let mut output = ::image::GrayImage::from_pixel(source.width(), source.height(), Luma([0]));
         for (cx, cy) in centers.into_iter() {
             let px = output.get_pixel_mut(cx, cy);
             px[0] = std::u8::MAX;
@@ -148,7 +138,6 @@ impl DenseLayer {
     }
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // GRADIENT LAYER
 ///////////////////////////////////////////////////////////////////////////////
@@ -162,7 +151,6 @@ impl GradientLayer {
         GradientLayer(DynamicImage::ImageLuma8(output))
     }
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // EVAL
@@ -184,12 +172,12 @@ impl GradientLayer {
 //         Connectivity::Eight,
 //         Luma::black()
 //     );
-    
+
 //     // let image = palette::set_region(&image, Luma([std::u32::MAX]), |_, count| count > (120 * 120));
-    
+
 //     let image = DenseLayer::new(image);
 //     image.0
-    
+
 //     // DONE
 //     // let image = image.to_pretty_rgb_palette();
 //     // DynamicImage::ImageRgb8(image)
@@ -212,7 +200,7 @@ pub fn eval(source: &DynamicImage) -> DynamicImage {
     //     Connectivity::Eight,
     //     Luma::black()
     // );
-    
+
     // // LAYERS
     // let output = NoisyLayer::new(output);
     // output.0
@@ -227,7 +215,7 @@ pub fn eval(source: &DynamicImage) -> DynamicImage {
     //         count > (200 * 200)
     //     }
     // });
-    
+
     // // GRADIENT
     // let output = GradientLayer::new(&output.to_luma());
 
@@ -237,11 +225,9 @@ pub fn eval(source: &DynamicImage) -> DynamicImage {
     // DynamicImage::ImageRgb8(output)
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // MAIN
 ///////////////////////////////////////////////////////////////////////////////
-
 
 pub fn run() {
     let output_dir = PathBuf::from("assets/output");
@@ -266,4 +252,3 @@ pub fn run() {
             out_image.save(output_path);
         });
 }
-

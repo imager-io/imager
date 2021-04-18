@@ -1,8 +1,8 @@
 #![allow(unused)]
-pub mod process;
-pub mod color;
 pub mod classify;
 pub mod codec;
+pub mod color;
+pub mod process;
 
 fn main() {
     // process::run();
